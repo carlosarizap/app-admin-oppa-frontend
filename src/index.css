@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+:root {
+  --primary-color: #1c4a9b;
+  /* Replace with your desired primary color */
+  --secondary-color: #fb9304;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+nav {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+nav a {
+  color: white !important;
+  /* Set the text color to white */
+  text-decoration: none;
+  /* Remove underline from links */
+  /* Add any other desired styles for the text */
+}
+
+/* Table container */
+.tabla-container {
+  overflow-x: auto;
+}
+
+/* Table styles */
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ededed;
+  border-radius: 25px;
+
+  border-spacing: 0;
+  border-collapse: collapse;
+  border: var(--border);
+  overflow: hidden;
+}
+
+/* Table header */
+.tabla thead {
+  background-color: var(--secondary-color);
+}
+
+.tabla thead th {
+  padding: 12px;
+  font-weight: bold;
+  text-align: left;
+  color: white;
+}
+
+/* Table body */
+.tabla tbody td {
+  padding: 12px;
+}
+
+
+/* Hover effect */
+.tabla tbody tr:hover {
+  background-color: #fb940421;
+}
+
+.switch-on .ant-switch-handle {
+  background-color: #52c41a;
+  /* Set the background color for the switched on state */
+}
+
+.switch-off .ant-switch-handle {
+  background-color: #f5222d;
+  /* Set the background color for the switched off state */
+}
+
+button {
+  margin: 10px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+}
+
+.ant-switch-checked {
+  background: var(--primary-color) !important;
+}
+
+.btn-excel {
+  background-color: #52c41a;
+  color: white;
+}
+
+.btn-excel:hover {
+  background-color: #328409;
+  color: white;
+}
+
+.btn-excel-2 {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.btn-excel-2:hover {
+  background-color: #ce7800;
+  color: white;
+}
+
+.green-text {
+  color: green;
+  font-weight: bold;
+}
+
+.red-text {
+  color: red;
+  font-weight: bold;
+}
+
+.custom-tabs .nav-link {
+  color: black;
+  background-color: #ededed;
+  border: none;
+}
+
+.custom-tabs .nav-link.active {
+  color: #fff;
+  background-color: var(--primary-color);
+}
+
+
+.main {
+  width: 50%;
+  margin: 50px auto;
+}
+
+/* Bootstrap 4 text input with search icon */
+
+.has-search .form-control {
+  padding-left: 2.375rem;
+}
+
+.has-search .form-control-feedback {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 2.375rem;
+  height: 2.375rem;
+  line-height: 2.375rem;
+  text-align: center;
+  pointer-events: none;
+  color: #aaa;
+}
+
+.form-group.has-search {
+  position: relative;
+}
+
+.form-group.has-search .form-control {
+  padding-right: 50px;
+  /* Add space for the clear button */
+}
+
+.form-group.has-search .btn-clear {
+  position: absolute;
+  right: 0px;
+  top: 27%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-todos {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+.btn-activo {
+  border-radius: 0;
+  background-color: #45b00f;
+  border-color: transparent;
+}
+
+.btn-inactivo {
+  border-radius: 0;
+  background-color: red;
+  border-color: transparent;
+}
+
+.btn-suscriptor {
+  border-radius: 0;
+  background-color: var(--primary-color);
+  border-color: transparent;
+}
+
+.btn-nosuscriptor {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  background-color: var(--secondary-color);
+  border-color: transparent;
+  margin-right: 10px;
+}
+
+/* Add this CSS code to your existing styles */
+
+/* Selected state for Todos */
+input[name="estadoFilter"]:checked ~ label[for="estadoFilter1"],
+input[name="estadoFilter"]:hover ~ label[for="estadoFilter1"] {
+  background-color: rgb(46, 46, 46); /* Replace with your desired color */
+  border-color: rgb(46, 46, 46);
+  border-width: 1px;
+}
+
+/* Selected state for Activos */
+input[name="estadoFilter"]:checked ~ label[for="estadoFilter2"],
+input[name="estadoFilter"]:hover ~ label[for="estadoFilter2"] {
+  background-color: #328409; /* Replace with your desired color */
+  border-color: #328409;
+  border-width: 2px;
+}
+
+/* Selected state for Inactivos */
+input[name="estadoFilter"]:checked ~ label[for="estadoFilter3"],
+input[name="estadoFilter"]:hover ~ label[for="estadoFilter3"] {
+  background-color: rgb(175, 0, 0); /* Replace with your desired color */
+  border-color:rgb(175, 0, 0);
+  border-width: 2px;
+}
+
+/* Selected state for Subscriptores */
+input[name="subscriptorFilter"]:checked ~ label[for="subscriptorFilter2"],
+input[name="subscriptorFilter"]:hover ~ label[for="subscriptorFilter2"] {
+  background-color: #0c2f6c; /* Replace with your desired color */
+  border-color: #0c2f6c;
+  border-width: 2px;
+}
+
+/* Selected state for No Subscriptores */
+input[name="subscriptorFilter"]:checked ~ label[for="subscriptorFilter3"],
+input[name="subscriptorFilter"]:hover ~ label[for="subscriptorFilter3"] {
+  background-color: #ce7800; /* Replace with your desired color */
+  border-color: #ce7800;
+  border-width: 2px;
+}
+
+input[name="subscriptorFilter11"]:checked ~ label[for="estadoFilter33"],
+input[name="subscriptorFilter11"]:hover ~ label[for="estadoFilter33"] {
+  background-color: #ce7800; /* Replace with your desired color */
+  border-color: #ce7800;
+  border-width: 2px;
+}
+
+input[name="subscriptorFilter12"]:checked ~ label[for="estadoFilter22"],
+input[name="subscriptorFilter12"]:hover ~ label[for="estadoFilter22"] {
+  background-color: #0c2f6c; /* Replace with your desired color */
+  border-color: #0c2f6c;
+  border-width: 2px;
+}
+
+input[name="subscriptorFilter32"]:checked ~ label[for="estadoFilter31"],
+input[name="subscriptorFilter32"]:hover ~ label[for="estadoFilter31"] {
+  background-color: rgb(46, 46, 46); /* Replace with your desired color */
+  border-color: rgb(46, 46, 46);
+  border-width: 1px;
+}
+
