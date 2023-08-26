@@ -42,7 +42,8 @@ const ProveedorForm = () => {
             const filteredProfesionEstado = profesionEstadoResponse.filter(
                 (profesion) => profesion.IdProveedor === proveedorId
             );
-            setSelectedProfesiones(profesionEstadoResponse.map((profesion) => ({ value: profesion.Nombre, label: profesion.Nombre })))
+            setSelectedProfesiones(filteredProfesionEstado.map((profesion) => ({ value: profesion.Nombre, label: profesion.Nombre })))
+
             setProfesionEstado(filteredProfesionEstado);
 
         } catch (error) {
@@ -154,10 +155,6 @@ const ProveedorForm = () => {
             console.error('Error submitting form:', error);
         }
     };
-
-
-
-
     const handleDelete = async () => {
         const confirmed = window.confirm('Estás seguro de que quieres borrar este Proveedor?');
         if (!confirmed) {
@@ -205,8 +202,6 @@ const ProveedorForm = () => {
         setSelectedProfesiones(selectedOptions);
     };
     
-
-
 
     return (
         <div className="container mt-5">
