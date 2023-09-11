@@ -301,12 +301,13 @@ const ServicioForm = () => {
                 className='form-control'
                 type="date"
                 name="FechaDesde"
-                selected={servicio.FechaDesde ? new Date(servicio.FechaDesde) : null}
+                selected={servicio?.FechaDesde ? new Date(servicio.FechaDesde) : null}
                 onChange={handleFechaDesdeChange}
                 dateFormat="dd/MM/yyyy"
-                maxDate={servicio.fechaHasta}
+                maxDate={servicio?.FechaHasta} // Use optional chaining here as well
                 required
               />
+
             </h5>
           </div>
 
@@ -318,12 +319,13 @@ const ServicioForm = () => {
                 className='form-control'
                 type="date"
                 name="FechaHasta"
-                selected={servicio.FechaHasta ? new Date(servicio.FechaHasta) : null}
+                selected={servicio?.FechaHasta ? new Date(servicio.FechaHasta) : null}
                 onChange={handleFechaHastaChange}
                 dateFormat="dd/MM/yyyy"
-                minDate={servicio.FechaDesde}
+                minDate={servicio?.FechaDesde} // Use optional chaining here as well
                 required
               />
+
             </h5>
           </div>
 
