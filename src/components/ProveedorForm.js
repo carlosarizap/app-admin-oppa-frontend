@@ -14,7 +14,10 @@ const ProveedorForm = () => {
     const [profesiones, setProfesiones] = useState([]);
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
     const [profesionEstado, setProfesionEstado] = useState([]);
+    
     const currentDate = new Date();
+    
+    //lista de genero
     const options = [
         { value: 'Femenino', label: 'Femenino' },
         { value: 'Masculino', label: 'Masculino' },
@@ -212,6 +215,7 @@ const ProveedorForm = () => {
                     <table className="tabla">
                         <thead>
                             <tr>
+                                <th>Nombre</th>
                                 <th>Nombre</th>
                                 <th>Rating</th>
                                 <th>Núm. de Reseñas</th>
