@@ -11,27 +11,27 @@ const ProveedorForm = () => {
     const { id: proveedorId } = useParams();
     const [proveedor, setProveedor] = useState({});
     const [bancos, setBancos] = useState([]);
-
+    //---------------------------------------
     const [profesiones, setProfesiones] = useState([]);
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
     const [profesionEstado, setProfesionEstado] = useState([]);
-    //Agregar servicio del proveedor
+    //---------------------------------------
     const [serviciosProveedor, setServicioProveedor] = useState([]);
-    
+
+
+
     const currentDate = new Date();
-    
-    //lista de genero
     const options = [
         { value: 'Femenino', label: 'Femenino' },
         { value: 'Masculino', label: 'Masculino' },
         { value: 'Prefiero no decir', label: 'Prefiero no decir' },
     ];
-    // efectos secundarios en sus componentes. extrae todos los datos del proveedor
+
     useEffect(() => {
         fetchData();
     }, []);
 
-    //funcion que extraer los datos del proveedor
+    //BUSCA LOS DATOS DEL PROVEEDOR
     const fetchData = async () => {
         try {
             const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`).then((response) =>
@@ -40,8 +40,8 @@ const ProveedorForm = () => {
             const bancosResponse = await fetch(`${URL_BACKEND}/api/bancos/`).then((response) => response.json());
             const profesionesResponse = await fetch(`${URL_BACKEND}/api/profesiones/`).then((response) => response.json());
             const profesionEstadoResponse = await fetch(`${URL_BACKEND}/api/profesionEstados/`).then((response) => response.json());
-            const proveedorServicioResponse = await fetch(`${URL_BACKEND}/api/proveedorServicio/`).then((response) => response.json());
-
+            const serviciosProveedorResponse = await fetch(`${URL_BACKEND}/api/proveedorServicio/${proveedorId}`).then((response) => response.json());
+            //Aqui se guardan los datos
             setProveedor(proveedorResponse);
             setBancos(bancosResponse.map((banco) => ({ value: banco.Nombre, label: banco.Nombre })));
             setProfesiones(profesionesResponse);
@@ -49,16 +49,11 @@ const ProveedorForm = () => {
             const filteredProfesionEstado = profesionEstadoResponse.filter(
                 (profesion) => profesion.IdProveedor === proveedorId
             );
-
-            const filteredProveedorServicio = proveedorServicioResponse.filter(
-                (proServicio) => proServicio.IdProveedor === proveedorId
-            );
-
             setSelectedProfesiones(filteredProfesionEstado.map((profesion) => ({ value: profesion.Nombre, label: profesion.Nombre })))
 
             setProfesionEstado(filteredProfesionEstado);
-
-            setProveedorServicio(filteredProveedorServicio);
+            setServicioProveedor(serviciosProveedorResponse);
+            //console.log(serviciosProveedorResponse);
 
         } catch (error) {
             console.error('Error fetching proveedor:', error);
@@ -71,7 +66,7 @@ const ProveedorForm = () => {
         return <div>Loading...</div>;
     }
 
-
+    //Esta funcion actualiza los datos del proveedor
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -97,7 +92,7 @@ const ProveedorForm = () => {
                 body: JSON.stringify(proveedor),
             });
 
-            // Update the profesionEstado data
+            // Se actualiza la profesion del proveedor
             const updatedProfesionEstado = await Promise.all(
                 profesionEstado.map(async (profesion) => {
                     const response = await fetch(
@@ -265,6 +260,8 @@ const ProveedorForm = () => {
 
             return updatedProfesionEstado;
         });
+
+        
     };
 
     const handleProfesionesChange = (selectedOptions) => {
