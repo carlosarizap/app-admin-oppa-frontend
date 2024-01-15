@@ -11,11 +11,12 @@ const ProveedorForm = () => {
     const { id: proveedorId } = useParams();
     const [proveedor, setProveedor] = useState({});
     const [bancos, setBancos] = useState([]);
+
     const [profesiones, setProfesiones] = useState([]);
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
     const [profesionEstado, setProfesionEstado] = useState([]);
     //Agregar servicio del proveedor
-    const [proveedorServcio, setProveedorServicio] = useState([]);
+    const [serviciosProveedor, setServicioProveedor] = useState([]);
     
     const currentDate = new Date();
     
@@ -113,6 +114,19 @@ const ProveedorForm = () => {
                 })
             );
 
+            const updatedProveedorServicio = await Promise.all(
+                serviciosProveedor.map(async (servicio) => {
+                    const response = await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(servicio),
+                    });
+                    return response.json();
+                })
+            );
+
             // Update the selected professions in the profesionEstado collection
             const updatedSelectedProfesiones = await Promise.all(
                 selectedProfesiones.map(async (selectedProfesion) => {
@@ -204,9 +218,51 @@ const ProveedorForm = () => {
     };
 
     const handleProfesionActivaChange = (index, isActive) => {
+        let updatedServicios = [];
+
         setProfesionEstado((prevProfesionEstado) => {
             const updatedProfesionEstado = [...prevProfesionEstado];
             updatedProfesionEstado[index].Activa = isActive;
+            if(isActive === true){
+                //Se activan los servicios.
+                const servciosToUpdate = serviciosProveedor.filter(
+                    (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
+                );
+
+                updatedServicios = servciosToUpdate.map((servicio) => ({
+                    ...servicio,
+                    Estado: true,
+                    PausadoPorOPPA: false,
+                }));
+
+            }else{
+                //Se desactivan todos los servcios de la profesion.
+                const servciosToUpdate = serviciosProveedor.filter(
+                    (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
+                );
+
+                updatedServicios = servciosToUpdate.map((servicio) => ({
+                    ...servicio,
+                    Estado: false,
+                    PausadoPorOPPA: true,
+                }));
+
+                
+            };
+
+            setServicioProveedor((prevServiciosProveedor) => {
+                const updatedServiciosProveedor = [...prevServiciosProveedor];
+                updatedServicios.forEach((updatedServicio) => {
+                    const index = updatedServiciosProveedor.findIndex(
+                        (servicio) => servicio._id === updatedServicio._id
+                    );
+                    if (index !== -1) {
+                        updatedServiciosProveedor[index] = updatedServicio;
+                    }
+                });
+                return updatedServiciosProveedor;
+            });
+
             return updatedProfesionEstado;
         });
     };
