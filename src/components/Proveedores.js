@@ -85,6 +85,42 @@ const Proveedores = () => {
                     proveedor._id === proveedorId ? { ...proveedor, Estado: checked } : proveedor
                 )
             );
+
+            if(!checked){
+                
+                const notificationData = {
+                    title: "OPPA Cliente",
+                    text: "Su cuenta ha sido bloqueada.",
+                    action: "cuenta",
+                    Silent: false,
+                    Tags: [proveedorToUpdate.Rut],
+                    
+                    schedule: {
+                        Frequency: "Instant",
+                        SendDateTime: new Date()
+                    }
+                };
+    
+                const json = JSON.stringify(notificationData);
+    
+                const headers = new Headers();
+                headers.append("Content-Type", "application/json");
+                headers.append("apiKey", "MyApiKey");
+    
+                const response = await fetch("https://pushnotificationoppaapi.azurewebsites.net/api/notifications/requests", {
+                    method: "POST",
+                    headers: headers,
+                    body: json
+                });
+    
+               
+    
+                if (!response.ok) {
+                    throw new Error(`Error en la solicitud: ${response.statusText}`);
+                }
+    
+                
+            }
         } catch (error) {
             console.error('Error updating proveedor:', error);
         }
