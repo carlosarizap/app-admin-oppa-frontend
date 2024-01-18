@@ -17,10 +17,12 @@ const ProveedorForm = () => {
     const [profesionEstado, setProfesionEstado] = useState([]);
     //---------------------------------------
     const [serviciosProveedor, setServicioProveedor] = useState([]);
+    const [fotoPerfilUrl, setFotoPerfilUrl] = useState(null);
 
 
 
     const currentDate = new Date();
+    //cambio de genero
     const options = [
         { value: 'Femenino', label: 'Femenino' },
         { value: 'Masculino', label: 'Masculino' },
@@ -31,7 +33,7 @@ const ProveedorForm = () => {
         fetchData();
     }, []);
 
-    //BUSCA LOS DATOS DEL PROVEEDOR
+    //SE CARGAN LOS DATOS DEL PROVEEDOR: BANCO, PROFESIONES, PROFESIONESTADO(DEL PROVEEDOR)
     const fetchData = async () => {
         try {
             const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`).then((response) =>
@@ -53,7 +55,15 @@ const ProveedorForm = () => {
 
             setProfesionEstado(filteredProfesionEstado);
             setServicioProveedor(serviciosProveedorResponse);
-            //console.log(serviciosProveedorResponse);
+            if (proveedorResponse.FotoPerfil && proveedorResponse.FotoPerfil.data) {
+                console.log(proveedorResponse.FotoPerfil.data)
+                const blob = new Blob([Uint8Array.from(proveedorResponse.FotoPerfil.data)], { type: 'image/png' });
+                const imageUrl = URL.createObjectURL(blob);
+                setFotoPerfilUrl(imageUrl);
+              } else {
+                console.warn('La propiedad FotoPerfil.data es nula o no tiene datos.');
+              }
+
 
         } catch (error) {
             console.error('Error fetching proveedor:', error);
@@ -63,13 +73,13 @@ const ProveedorForm = () => {
 
 
     if (proveedor === null) {
-        return <div>Loading...</div>;
+        return <div>Proveedor no se encuentra registrado</div>;
     }
 
-    //Esta funcion actualiza los datos del proveedor
+    //LA FUNCION handleSubmit ACTUALIZA LOS DATOS DEL PROVEEDOR
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        console.log(proveedor)
         // Validation checks
         if (
             !proveedor.Rut ||
@@ -81,16 +91,16 @@ const ProveedorForm = () => {
             console.log('Rellena todos los campos.');
             return;
         }
-
         try {
             // Update the proveedor data
-            await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`, {
+            const res = await fetch(`${URL_BACKEND}/api/proveedores/${proveedor._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(proveedor),
             });
+            console.log(res.status)
 
             // Se actualiza la profesion del proveedor
             const updatedProfesionEstado = await Promise.all(
@@ -267,12 +277,61 @@ const ProveedorForm = () => {
     const handleProfesionesChange = (selectedOptions) => {
         setSelectedProfesiones(selectedOptions);
     };
-    
 
+    //
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+    
+        if (file) {
+            const reader = new FileReader();
+    
+            reader.onloadend = () => {
+                // Obtener el ArrayBuffer del archivo
+                const arrayBuffer = reader.result;
+                
+                // Convertir el ArrayBuffer a un array de bytes (Uint8Array)
+                const uint8Array = new Uint8Array(arrayBuffer);
+    
+                // Guardar el array de bytes en proveedor.FotoPerfil
+                setProveedor((prevProveedor) => ({
+                    ...prevProveedor,
+                    FotoPerfil: Array.from(uint8Array),
+                }));
+            };
+    
+            reader.readAsArrayBuffer(file);
+            // O también puedes usar reader.readAsBinaryString(file);
+    
+            // Resto de tu código...
+            const imageUrl = URL.createObjectURL(file);
+            setFotoPerfilUrl(imageUrl);
+        }
+    };
+    
+    
     return (
         <div className="container mt-5">
+            
             <h1 className="text-center">Editar Proveedor</h1>
             <form className="d-flex flex-column col-6 mx-auto" onSubmit={handleSubmit}>
+            <div className="row justify-content-center">
+                <div className="col-6">
+                    {/* Mostrar la imagen */}
+                    {fotoPerfilUrl && (
+              <img
+                src={fotoPerfilUrl}
+                
+                alt="Foto de perfil"
+                className="custom-image rounded-circle"
+              />
+            )}
+                </div>
+                </div>
+                <input type="file" 
+                    onChange={handleFileChange} 
+                    accept=" image/png, .jpeg, .jpg"/>
+
                 <h3>Profesiones:</h3>
                 <div>
                     <table className="tabla">
