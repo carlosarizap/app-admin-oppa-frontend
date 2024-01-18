@@ -55,14 +55,9 @@ const ProveedorForm = () => {
 
             setProfesionEstado(filteredProfesionEstado);
             setServicioProveedor(serviciosProveedorResponse);
-<<<<<<< HEAD
             
             if (proveedorResponse.FotoPerfil && proveedorResponse.FotoPerfil.data) {
                 
-=======
-            if (proveedorResponse.FotoPerfil && proveedorResponse.FotoPerfil.data) {
-                console.log(proveedorResponse.FotoPerfil.data)
->>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
                 const blob = new Blob([Uint8Array.from(proveedorResponse.FotoPerfil.data)], { type: 'image/png' });
                 const imageUrl = URL.createObjectURL(blob);
                 setFotoPerfilUrl(imageUrl);
@@ -85,11 +80,7 @@ const ProveedorForm = () => {
     //LA FUNCION handleSubmit ACTUALIZA LOS DATOS DEL PROVEEDOR
     const handleSubmit = async (e) => {
         e.preventDefault();
-<<<<<<< HEAD
         
-=======
-        console.log(proveedor)
->>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
         // Validation checks
         if (
             !proveedor.Rut ||
@@ -103,27 +94,17 @@ const ProveedorForm = () => {
         }
         try {
             // Update the proveedor data
-<<<<<<< HEAD
             await fetch(`${URL_BACKEND}/api/proveedores/${proveedor._id}`, {
-=======
-            const res = await fetch(`${URL_BACKEND}/api/proveedores/${proveedor._id}`, {
->>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(proveedor),
             });
-<<<<<<< HEAD
             
 
             // Se actualiza la profesion del proveedor
            
-=======
-            console.log(res.status)
-
-            // Se actualiza la profesion del proveedor
->>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
             const updatedProfesionEstado = await Promise.all(
                     profesionEstado.map(async (profesion) => {
                         const response = await fetch(
@@ -149,7 +130,6 @@ const ProveedorForm = () => {
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-<<<<<<< HEAD
                             body: JSON.stringify(servicio),
                         });
                         return response.json();
@@ -161,28 +141,6 @@ const ProveedorForm = () => {
             }       
            
 
-=======
-                            body: JSON.stringify(profesion),
-                        }
-                    );
-                    return response.json();
-                })
-            );
-            /*
-            const updatedProveedorServicio = await Promise.all(
-                serviciosProveedor.map(async (servicio) => {
-                    const response = await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(servicio),
-                    });
-                    return response.json();
-                })
-            );
-                */
->>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
             // Update the selected professions in the profesionEstado collection
             const updatedSelectedProfesiones = await Promise.all(
                 selectedProfesiones.map(async (selectedProfesion) => {
