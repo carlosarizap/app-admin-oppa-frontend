@@ -17,6 +17,7 @@ const Proveedores = () => {
         setSearchQuery(e.target.value);
     };
 
+    //Funcion para tomar un proveedor y llevarlo a proveedorForms
     const handleRowClickProveedor = (proveedorId) => {
         navigate(`/proveedores/${proveedorId}`);
     };
@@ -48,13 +49,15 @@ const Proveedores = () => {
           
               // Group the filtered ProfesionEstado data by IdProveedor
               filteredData.forEach((profesionEstado) => {
-                const { IdProveedor, Nombre } = profesionEstado;
+                const { IdProveedor, Nombre} = profesionEstado;
+                
                 if (!map.has(IdProveedor)) {
                   map.set(IdProveedor, [Nombre]); // Initialize with an array if the IdProveedor doesn't exist
                 } else {
                   const nombres = map.get(IdProveedor);
                   nombres.push(Nombre); // Add the Nombre to the existing array
                   map.set(IdProveedor, nombres);
+
                 }
               });
           
@@ -68,9 +71,13 @@ const Proveedores = () => {
         fetchProfesionEstado();
     }, []);
 
-    const handleEstadoChangeProveedor = async (checked, proveedorId) => {
+    //Funcion para activar o desactivar al proveedor
+    const handleEstadoChangeProveedor = async (checked, proveedorId, proveedorRut) => {
         try {
+            
+            
 
+            //actualiza al proveedor para la variable Estado
             await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`, {
                 method: 'PUT',
                 headers: {
@@ -79,13 +86,43 @@ const Proveedores = () => {
                 body: JSON.stringify({ Estado: checked }),
             });
 
-
             setProveedores((prevProveedores) =>
                 prevProveedores.map((proveedor) =>
                     proveedor._id === proveedorId ? { ...proveedor, Estado: checked } : proveedor
                 )
             );
+            //Se actualiza las profesiones del proveedor cuando se desactiva o se activa.
+            const profesionesDelProveedor = await fetch(`${URL_BACKEND}/api/profesionEstados/proveedor/${proveedorId}`).then((response) => response.json());
+            const profesionesActualizadas = [];
+            await Promise.all(profesionesDelProveedor.map(async (profesion) => {
+                const updatedProfesion = {
+                    ...profesion,
+                    Activa: checked,
+                };
 
+                profesionesActualizadas.push(updatedProfesion);
+
+                try {
+                    const response = await fetch(`${URL_BACKEND}/api/profesionEstados/${updatedProfesion._id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedProfesion),
+                    });
+
+                    const jsonResponse = await response.json();  // Esperar a que se resuelva la promesa
+
+                    console.log(jsonResponse);
+                } catch (error) {
+                    console.error('Error updating profesionEstado:', error);
+                }
+            }));
+
+            //Desactivar o activar los servcios del proveedor
+
+
+        
             if(!checked){
                 
                 const notificationData = {
@@ -93,7 +130,7 @@ const Proveedores = () => {
                     text: "Su cuenta ha sido bloqueada.",
                     action: "cuenta",
                     Silent: false,
-                    Tags: [proveedorToUpdate.Rut],
+                    Tags: [proveedorRut],
                     
                     schedule: {
                         Frequency: "Instant",
@@ -121,6 +158,9 @@ const Proveedores = () => {
     
                 
             }
+            
+            
+            
         } catch (error) {
             console.error('Error updating proveedor:', error);
         }
@@ -335,7 +375,7 @@ const Proveedores = () => {
 
                                     <td><Switch
                                         checked={proveedor.Estado}
-                                        onChange={(checked) => handleEstadoChangeProveedor(checked, proveedor._id)}
+                                        onChange={(checked) => handleEstadoChangeProveedor(checked, proveedor._id, proveedor.Rut)}
                                     /></td>
                                     <td>
                                         <Checkbox
