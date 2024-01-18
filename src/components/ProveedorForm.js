@@ -11,10 +11,18 @@ const ProveedorForm = () => {
     const { id: proveedorId } = useParams();
     const [proveedor, setProveedor] = useState({});
     const [bancos, setBancos] = useState([]);
+    //---------------------------------------
     const [profesiones, setProfesiones] = useState([]);
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
     const [profesionEstado, setProfesionEstado] = useState([]);
+    //---------------------------------------
+    const [serviciosProveedor, setServicioProveedor] = useState([]);
+    const [fotoPerfilUrl, setFotoPerfilUrl] = useState(null);
+
+
+
     const currentDate = new Date();
+    //cambio de genero
     const options = [
         { value: 'Femenino', label: 'Femenino' },
         { value: 'Masculino', label: 'Masculino' },
@@ -25,7 +33,7 @@ const ProveedorForm = () => {
         fetchData();
     }, []);
 
-
+    //SE CARGAN LOS DATOS DEL PROVEEDOR: BANCO, PROFESIONES, PROFESIONESTADO(DEL PROVEEDOR)
     const fetchData = async () => {
         try {
             const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`).then((response) =>
@@ -34,7 +42,8 @@ const ProveedorForm = () => {
             const bancosResponse = await fetch(`${URL_BACKEND}/api/bancos/`).then((response) => response.json());
             const profesionesResponse = await fetch(`${URL_BACKEND}/api/profesiones/`).then((response) => response.json());
             const profesionEstadoResponse = await fetch(`${URL_BACKEND}/api/profesionEstados/`).then((response) => response.json());
-
+            const serviciosProveedorResponse = await fetch(`${URL_BACKEND}/api/proveedorServicio/${proveedorId}`).then((response) => response.json());
+            //Aqui se guardan los datos
             setProveedor(proveedorResponse);
             setBancos(bancosResponse.map((banco) => ({ value: banco.Nombre, label: banco.Nombre })));
             setProfesiones(profesionesResponse);
@@ -45,6 +54,17 @@ const ProveedorForm = () => {
             setSelectedProfesiones(filteredProfesionEstado.map((profesion) => ({ value: profesion.Nombre, label: profesion.Nombre })))
 
             setProfesionEstado(filteredProfesionEstado);
+            setServicioProveedor(serviciosProveedorResponse);
+            
+            if (proveedorResponse.FotoPerfil && proveedorResponse.FotoPerfil.data) {
+                
+                const blob = new Blob([Uint8Array.from(proveedorResponse.FotoPerfil.data)], { type: 'image/png' });
+                const imageUrl = URL.createObjectURL(blob);
+                setFotoPerfilUrl(imageUrl);
+              } else {
+                console.warn('La propiedad FotoPerfil.data es nula o no tiene datos.');
+              }
+
 
         } catch (error) {
             console.error('Error fetching proveedor:', error);
@@ -54,13 +74,13 @@ const ProveedorForm = () => {
 
 
     if (proveedor === null) {
-        return <div>Loading...</div>;
+        return <div>Proveedor no se encuentra registrado</div>;
     }
 
-
+    //LA FUNCION handleSubmit ACTUALIZA LOS DATOS DEL PROVEEDOR
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        
         // Validation checks
         if (
             !proveedor.Rut ||
@@ -72,33 +92,54 @@ const ProveedorForm = () => {
             console.log('Rellena todos los campos.');
             return;
         }
-
         try {
             // Update the proveedor data
-            await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`, {
+            await fetch(`${URL_BACKEND}/api/proveedores/${proveedor._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(proveedor),
             });
+            
 
-            // Update the profesionEstado data
+            // Se actualiza la profesion del proveedor
+           
             const updatedProfesionEstado = await Promise.all(
-                profesionEstado.map(async (profesion) => {
-                    const response = await fetch(
-                        `${URL_BACKEND}/api/profesionEstados/${profesion._id}`,
-                        {
+                    profesionEstado.map(async (profesion) => {
+                        const response = await fetch(
+                            `${URL_BACKEND}/api/profesionEstados/${profesion._id}`,
+                            {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(profesion),
+                            }
+                        );
+                        return response.json();
+                    })
+            );
+           
+            
+            if(serviciosProveedor !== null){
+                const updatedProveedorServicio = await Promise.all(
+                    serviciosProveedor.map(async (servicio) => {
+                        const response = await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify(profesion),
-                        }
-                    );
-                    return response.json();
-                })
-            );
+                            body: JSON.stringify(servicio),
+                        });
+                        return response.json();
+                    })
+                );
+
+            }else{
+                console.log("No hay servicios")
+            }       
+           
 
             // Update the selected professions in the profesionEstado collection
             const updatedSelectedProfesiones = await Promise.all(
@@ -191,22 +232,115 @@ const ProveedorForm = () => {
     };
 
     const handleProfesionActivaChange = (index, isActive) => {
+        let updatedServicios = [];
+
         setProfesionEstado((prevProfesionEstado) => {
             const updatedProfesionEstado = [...prevProfesionEstado];
             updatedProfesionEstado[index].Activa = isActive;
+            if(isActive === true){
+                //Se activan los servicios.
+                const servciosToUpdate = serviciosProveedor.filter(
+                    (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
+                );
+
+                updatedServicios = servciosToUpdate.map((servicio) => ({
+                    ...servicio,
+                    Estado: true,
+                    PausadoPorOPPA: false,
+                }));
+
+            }else{
+                //Se desactivan todos los servcios de la profesion.
+                const servciosToUpdate = serviciosProveedor.filter(
+                    (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
+                );
+
+                updatedServicios = servciosToUpdate.map((servicio) => ({
+                    ...servicio,
+                    Estado: false,
+                    PausadoPorOPPA: true,
+                }));
+
+                
+            };
+
+            setServicioProveedor((prevServiciosProveedor) => {
+                const updatedServiciosProveedor = [...prevServiciosProveedor];
+                updatedServicios.forEach((updatedServicio) => {
+                    const index = updatedServiciosProveedor.findIndex(
+                        (servicio) => servicio._id === updatedServicio._id
+                    );
+                    if (index !== -1) {
+                        updatedServiciosProveedor[index] = updatedServicio;
+                    }
+                });
+                return updatedServiciosProveedor;
+            });
+
             return updatedProfesionEstado;
         });
+
+        
     };
 
     const handleProfesionesChange = (selectedOptions) => {
         setSelectedProfesiones(selectedOptions);
     };
-    
 
+    //
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+    
+        if (file) {
+            const reader = new FileReader();
+    
+            reader.onloadend = () => {
+                // Obtener el ArrayBuffer del archivo
+                const arrayBuffer = reader.result;
+                
+                // Convertir el ArrayBuffer a un array de bytes (Uint8Array)
+                const uint8Array = new Uint8Array(arrayBuffer);
+    
+                // Guardar el array de bytes en proveedor.FotoPerfil
+                setProveedor((prevProveedor) => ({
+                    ...prevProveedor,
+                    FotoPerfil: Array.from(uint8Array),
+                }));
+            };
+    
+            reader.readAsArrayBuffer(file);
+            // O también puedes usar reader.readAsBinaryString(file);
+    
+            // Resto de tu código...
+            const imageUrl = URL.createObjectURL(file);
+            setFotoPerfilUrl(imageUrl);
+        }
+    };
+    
+    
     return (
         <div className="container mt-5">
+            
             <h1 className="text-center">Editar Proveedor</h1>
             <form className="d-flex flex-column col-6 mx-auto" onSubmit={handleSubmit}>
+            <div className="row justify-content-center">
+                <div className="col-6">
+                    {/* Mostrar la imagen */}
+                    {fotoPerfilUrl && (
+              <img
+                src={fotoPerfilUrl}
+                
+                alt="Foto de perfil"
+                className="custom-image rounded-circle"
+              />
+            )}
+                </div>
+                </div>
+                <input type="file" 
+                    onChange={handleFileChange} 
+                    accept=" image/png, .jpeg, .jpg"/>
+
                 <h3>Profesiones:</h3>
                 <div>
                     <table className="tabla">
