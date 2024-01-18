@@ -365,17 +365,18 @@ const ProveedorForm = () => {
                 <br />
                 <div className="row">
 
-                    <Select
-                        isMulti
-                        options={profesiones.map((profesion) => ({
-                            value: profesion.Nombre,
-                            idCategoria: profesion.idCategoria,
-                            IdProfesion: profesion._id,
-                            label: profesion.Nombre,
-                        }))}
-                        value={selectedProfesiones}
-                        onChange={handleProfesionesChange}
-                    />
+                <Select
+                    isMulti
+                    options={profesiones && profesiones.map((profesion) => ({
+                        value: profesion.Nombre,
+                        idCategoria: profesion.idCategoria,
+                        IdProfesion: profesion._id,
+                        label: profesion.Nombre,
+                    }))}
+                    value={selectedProfesiones}
+                    onChange={handleProfesionesChange}
+                />
+
                 </div>
                 <br />
                 <h3>Datos:</h3>
