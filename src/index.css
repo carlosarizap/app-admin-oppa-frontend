@@ -264,7 +264,10 @@ input[name="subscriptorFilter32"]:hover ~ label[for="estadoFilter31"] {
   border-width: 1px;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
 /* En tu archivo de estilos CSS o SCSS */
 .custom-image {
   width: 100%;
@@ -273,3 +276,7 @@ input[name="subscriptorFilter32"]:hover ~ label[for="estadoFilter31"] {
   border-radius: 50%;  /* Esto hará que la imagen sea esférica */
   /* Agrega estilos adicionales según tus necesidades */
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1688c7c0ae20f1b081d27a1f06541b0432939dba
