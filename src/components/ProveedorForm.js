@@ -118,7 +118,7 @@ const ProveedorForm = () => {
                     return response.json();
                 })
             );
-
+            /*
             const updatedProveedorServicio = await Promise.all(
                 serviciosProveedor.map(async (servicio) => {
                     const response = await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`, {
@@ -131,7 +131,7 @@ const ProveedorForm = () => {
                     return response.json();
                 })
             );
-
+                */
             // Update the selected professions in the profesionEstado collection
             const updatedSelectedProfesiones = await Promise.all(
                 selectedProfesiones.map(async (selectedProfesion) => {
