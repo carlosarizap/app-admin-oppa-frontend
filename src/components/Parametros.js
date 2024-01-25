@@ -14,6 +14,8 @@ const Parametros = () => {
         tiempoAnadido: 0,
         tiempoMinimo: 0,
         tiempoMaximo: 0,
+        TiempoDeViaje: 0,
+        TiempoSeguirBuscando: 0,
     });
 
     const navigate = useNavigate();
@@ -465,8 +467,11 @@ const Parametros = () => {
             parsedValue = Math.min(Math.max(parsedValue, 0), 23);
         } else if (id === 'TiempoMaximo') {
             parsedValue = Math.min(Math.max(parsedValue, 1), 24);
+        }else if (id === 'TiempoDeViaje') {
+            parsedValue = Math.min(Math.max(parsedValue, 1), 10000);
+        }else if (id === 'TiempoSeguirBuscando') {
+            parsedValue = Math.min(Math.max(parsedValue, 1), 9000);
         }
-
         if (parsedValue === 0) {
             parsedValue = '0';
         }
@@ -670,6 +675,23 @@ const Parametros = () => {
                             value={tiempo?.TiempoMaximo || ''}
                             onChange={handleChange}
                         />
+                        <label htmlFor="tiempoDeViaje">Tiempo de Viaje (minutos):</label>
+                        <input
+                            type="number"
+                            id="TiempoDeViaje"
+                            className="form-control"
+                            value={tiempo?.TiempoDeViaje || ''}
+                            onChange={handleChange}
+                        />
+                        <label htmlFor="tiempoSeguirBuscando">Tiempo de Buscando OPPA (minutos):</label>
+                        <input
+                            type="number"
+                            id="TiempoSeguirBuscando"
+                            className="form-control"
+                            value={tiempo?.TiempoSeguirBuscando || ''}
+                            onChange={handleChange}
+                        />
+
                     </div>
                     <div className="row justify-content-center">
                         <div className="col-6">
