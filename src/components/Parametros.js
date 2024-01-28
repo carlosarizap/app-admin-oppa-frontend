@@ -16,6 +16,7 @@ const Parametros = () => {
         tiempoMaximo: 0,
         TiempoDeViaje: 0,
         TiempoSeguirBuscando: 0,
+        TiempoDeViaje: 0
     });
 
     const navigate = useNavigate();
@@ -472,6 +473,9 @@ const Parametros = () => {
         }else if (id === 'TiempoSeguirBuscando') {
             parsedValue = Math.min(Math.max(parsedValue, 1), 9000);
         }
+        else if(id === 'TiempoDeViaje'){
+            parsedValue = Math.min(Math.max(parsedValue, 0), 10000);
+        }
         if (parsedValue === 0) {
             parsedValue = '0';
         }
@@ -689,6 +693,14 @@ const Parametros = () => {
                             id="TiempoSeguirBuscando"
                             className="form-control"
                             value={tiempo?.TiempoSeguirBuscando || ''}
+                            onChange={handleChange}
+                        />
+                        <label>Tiempo de viaje (minutos): </label>
+                        <input
+                            type="number"
+                            id="TiempoDeViaje"
+                            className="form-control"
+                            value={tiempo?.TiempoDeViaje || ''}
                             onChange={handleChange}
                         />
 

@@ -21,6 +21,9 @@ export default class Navigation extends Component {
                                 <Link className='nav-link fw-bold' to="/">Inicio</Link>
                             </li>
                             <li className="nav-item active fw-bold">
+                                <Link className='nav-link' to="/solicitudes">Solicitudes</Link>
+                            </li>
+                            <li className="nav-item active fw-bold">
                                 <Link className='nav-link' to="/servicios">Servicios</Link>
                             </li>
                             <li className="nav-item active fw-bold">
@@ -37,6 +40,9 @@ export default class Navigation extends Component {
                             </li>
                             <li className="nav-item active fw-bold">
                                 <Link className='nav-link' to="/proveedores">Proveedores</Link>
+                            </li>
+                            <li className="nav-item active fw-bold">
+                                <Link className='nav-link' to="/pagos">Pagos</Link>
                             </li>
                             <li className="nav-item active fw-bold">
                                 <Link className='nav-link' to="/parametros">Parámetros</Link>

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Switch, Checkbox } from 'antd';
+import {useNavigate } from 'react-router-dom';
 import '../index.css';
 import * as XLSX from 'xlsx';
 import { URL_BACKEND } from "../App";
 
 const Proveedores = () => {
     const navigate = useNavigate();
-    const [proveedores, setProveedores] = useState([]);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [estadoFilter, setEstadoFilter] = useState('Despejar');
+    //---------------Proveedor---------------------------------------------{}
+    const [proveedores, setProveedores] = useState([]);
     const [profesionEstadoMap, setProfesionEstadoMap] = useState(new Map());
 
 
@@ -17,13 +18,13 @@ const Proveedores = () => {
         setSearchQuery(e.target.value);
     };
 
-    //Funcion para tomar un proveedor y llevarlo a proveedorForms
+    //REDIRECCION A LA PAGINA PROVEEDORFORMS.
     const handleRowClickProveedor = (proveedorId) => {
         navigate(`/proveedores/${proveedorId}`);
     };
 
     useEffect(() => {
-        // Fetch proveedores data from the API
+        // CARGA DE PROVEEDORES
         const fetchProveedores = async () => {
             try {
                 const response = await fetch(`${URL_BACKEND}/api/proveedores`);
@@ -36,6 +37,7 @@ const Proveedores = () => {
 
         fetchProveedores();
 
+        //CARGA LAS PROFESIONES DE CADA PROVEEDOR
         const fetchProfesionEstado = async () => {
             try {
               const response = await fetch(`${URL_BACKEND}/api/profesionEstados`);
@@ -71,122 +73,6 @@ const Proveedores = () => {
         fetchProfesionEstado();
     }, []);
 
-    //Funcion para activar o desactivar al proveedor
-    const handleEstadoChangeProveedor = async (checked, proveedorId, proveedorRut) => {
-        try {
-            
-            
-
-            //actualiza al proveedor para la variable Estado
-            await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ Estado: checked }),
-            });
-
-            setProveedores((prevProveedores) =>
-                prevProveedores.map((proveedor) =>
-                    proveedor._id === proveedorId ? { ...proveedor, Estado: checked } : proveedor
-                )
-            );
-            //Se actualiza las profesiones del proveedor cuando se desactiva o se activa.
-            const profesionesDelProveedor = await fetch(`${URL_BACKEND}/api/profesionEstados/proveedor/${proveedorId}`).then((response) => response.json());
-            const profesionesActualizadas = [];
-            await Promise.all(profesionesDelProveedor.map(async (profesion) => {
-                const updatedProfesion = {
-                    ...profesion,
-                    Activa: checked,
-                };
-
-                profesionesActualizadas.push(updatedProfesion);
-
-                try {
-                    const response = await fetch(`${URL_BACKEND}/api/profesionEstados/${updatedProfesion._id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(updatedProfesion),
-                    });
-
-                    const jsonResponse = await response.json();  // Esperar a que se resuelva la promesa
-
-                    console.log(jsonResponse);
-                } catch (error) {
-                    console.error('Error updating profesionEstado:', error);
-                }
-            }));
-
-            //Desactivar o activar los servcios del proveedor
-
-
-        
-            if(!checked){
-                
-                const notificationData = {
-                    title: "OPPA Cliente",
-                    text: "Su cuenta ha sido bloqueada.",
-                    action: "cuenta",
-                    Silent: false,
-                    Tags: [proveedorRut],
-                    
-                    schedule: {
-                        Frequency: "Instant",
-                        SendDateTime: new Date()
-                    }
-                };
-    
-                const json = JSON.stringify(notificationData);
-    
-                const headers = new Headers();
-                headers.append("Content-Type", "application/json");
-                headers.append("apiKey", "MyApiKey");
-    
-                const response = await fetch("https://pushnotificationoppaapi.azurewebsites.net/api/notifications/requests", {
-                    method: "POST",
-                    headers: headers,
-                    body: json
-                });
-    
-               
-    
-                if (!response.ok) {
-                    throw new Error(`Error en la solicitud: ${response.statusText}`);
-                }
-    
-                
-            }
-            
-            
-            
-        } catch (error) {
-            console.error('Error updating proveedor:', error);
-        }
-    };
-
-    const handleRevisadoChangeProveedor = async (checked, proveedorId) => {
-        try {
-
-            await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ Revisado: checked.target.checked }),
-            });
-
-
-            setProveedores((prevProveedores) =>
-                prevProveedores.map((proveedor) =>
-                    proveedor._id === proveedorId ? { ...proveedor, Revisado: checked.target.checked } : proveedor
-                )
-            );
-        } catch (error) {
-            console.error('Error updating proveedor:', error);
-        }
-    };
 
     const handleDownloadExcelProveedores = () => {
         const workbook = XLSX.utils.book_new();
@@ -373,15 +259,19 @@ const Proveedores = () => {
                                         {profesionEstadoMap.get(proveedor._id)?.join(', ') || ''}
                                     </td>
 
-                                    <td><Switch
-                                        checked={proveedor.Estado}
-                                        onChange={(checked) => handleEstadoChangeProveedor(checked, proveedor._id, proveedor.Rut)}
-                                    /></td>
                                     <td>
-                                        <Checkbox
-                                            checked={proveedor.Revisado}
-                                            onChange={(checked) => handleRevisadoChangeProveedor(checked, proveedor._id)}
-                                        />
+                                        {proveedor.Estado ? (
+                                            <span style={{ color: 'green' }}>Activado</span>
+                                        ) : (
+                                            <span style={{ color: 'red' }}>Desactivado</span>
+                                        )}
+                                    </td>
+                                    <td>
+                                    {proveedor.Revisado ? (
+                                        <span style={{ color: 'green' }}>Revisado</span>
+                                    ) : (
+                                        <span style={{ color: 'red' }}>No revisado</span>
+                                    )}
 
                                     </td>
                                 </tr>
