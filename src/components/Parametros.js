@@ -695,14 +695,6 @@ const Parametros = () => {
                             value={tiempo?.TiempoSeguirBuscando || ''}
                             onChange={handleChange}
                         />
-                        <label>Tiempo de viaje (minutos): </label>
-                        <input
-                            type="number"
-                            id="TiempoDeViaje"
-                            className="form-control"
-                            value={tiempo?.TiempoDeViaje || ''}
-                            onChange={handleChange}
-                        />
 
                     </div>
                     <div className="row justify-content-center">
