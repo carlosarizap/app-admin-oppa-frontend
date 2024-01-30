@@ -506,21 +506,19 @@ const Parametros = () => {
                 ...prevParametro,
                 linkTerminosProveedor: value,
             }));
-        } else {
-            else if(id === 'TiempoDeViaje'){
-            parsedValue = Math.min(Math.max(parsedValue, 0), 10000);
         }
+    
         if (parsedValue === 0) {
-                parsedValue = '0';
-            }
-            if (Number.isNaN(parsedValue) || (parsedValue >= 0 || parsedValue === 0)) {
-                setTiempo((prevTiempo) => ({
-                    ...prevTiempo,
-                    [id]: parsedValue,
-                }));
-            }
+            parsedValue = '0';
+        }
+        if (Number.isNaN(parsedValue) || (parsedValue >= 0 || parsedValue === 0)) {
+            setTiempo((prevTiempo) => ({
+                ...prevTiempo,
+                [id]: parsedValue,
+            }));
         }
     };
+    
     
 
 
@@ -761,6 +759,6 @@ const Parametros = () => {
 
         </div>
     );
-};
-
+                            };
+                            
 export default Parametros;
