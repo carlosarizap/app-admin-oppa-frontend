@@ -16,6 +16,7 @@ const Parametros = () => {
         tiempoMaximo: 0,
         TiempoDeViaje: 0,
         TiempoSeguirBuscando: 0,
+        TiempoDeViaje: 0
     });
     const [parametro, setParametro] = useState({
         linkTerminosCliente: "",
@@ -506,7 +507,10 @@ const Parametros = () => {
                 linkTerminosProveedor: value,
             }));
         } else {
-            if (parsedValue === 0) {
+            else if(id === 'TiempoDeViaje'){
+            parsedValue = Math.min(Math.max(parsedValue, 0), 10000);
+        }
+        if (parsedValue === 0) {
                 parsedValue = '0';
             }
             if (Number.isNaN(parsedValue) || (parsedValue >= 0 || parsedValue === 0)) {

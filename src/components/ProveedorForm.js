@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Switch } from 'antd';
 import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
+import axios from 'axios';
 import { URL_BACKEND } from "../App";
 
 const ProveedorForm = () => {
@@ -16,11 +17,11 @@ const ProveedorForm = () => {
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
     const [profesionEstado, setProfesionEstado] = useState([]);
     //---------------------------------------
-    const [serviciosProveedor, setServicioProveedor] = useState([]);
+    const [proveedorServicio, setProveedorServicio] = useState([]);
     const [fotoPerfilUrl, setFotoPerfilUrl] = useState(null);
-
-
-
+    //----------------------------------------
+    const [proveedorSolicitudes, setproveedorSolicitudes] = useState([]);
+    
     const currentDate = new Date();
     //cambio de genero
     const options = [
@@ -39,31 +40,33 @@ const ProveedorForm = () => {
             const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${proveedorId}`).then((response) =>
                 response.json()
             );
+            //SE HACEN LAS PETICIONES A LA BASE DE DATOS Y SE GUARDAN.
             const bancosResponse = await fetch(`${URL_BACKEND}/api/bancos/`).then((response) => response.json());
             const profesionesResponse = await fetch(`${URL_BACKEND}/api/profesiones/`).then((response) => response.json());
-            const profesionEstadoResponse = await fetch(`${URL_BACKEND}/api/profesionEstados/`).then((response) => response.json());
+            const profesionEstadoResponse = await fetch(`${URL_BACKEND}/api/profesionEstados/proveedor/${proveedorId}`).then((response) => response.json());
             const serviciosProveedorResponse = await fetch(`${URL_BACKEND}/api/proveedorServicio/${proveedorId}`).then((response) => response.json());
+            const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
             //Aqui se guardan los datos
             setProveedor(proveedorResponse);
             setBancos(bancosResponse.map((banco) => ({ value: banco.Nombre, label: banco.Nombre })));
             setProfesiones(profesionesResponse);
+            setproveedorSolicitudes(solicitudesProveedorResponse);
             
-            const filteredProfesionEstado = profesionEstadoResponse.filter(
-                (profesion) => profesion.IdProveedor === proveedorId
-            );
-            setSelectedProfesiones(filteredProfesionEstado.map((profesion) => ({ value: profesion.Nombre, label: profesion.Nombre })))
+            
 
-            setProfesionEstado(filteredProfesionEstado);
-            setServicioProveedor(serviciosProveedorResponse);
+            setSelectedProfesiones(profesionEstadoResponse.map((profesion) => ({ value: profesion.Nombre, label: profesion.Nombre })))
+
+            setProfesionEstado(profesionEstadoResponse);
+            setProveedorServicio(serviciosProveedorResponse);
             
             if (proveedorResponse.FotoPerfil && proveedorResponse.FotoPerfil.data) {
                 
                 const blob = new Blob([Uint8Array.from(proveedorResponse.FotoPerfil.data)], { type: 'image/png' });
                 const imageUrl = URL.createObjectURL(blob);
                 setFotoPerfilUrl(imageUrl);
-              } else {
+            } else {
                 console.warn('La propiedad FotoPerfil.data es nula o no tiene datos.');
-              }
+            }
 
 
         } catch (error) {
@@ -71,133 +74,245 @@ const ProveedorForm = () => {
         }
     };
 
-
-
     if (proveedor === null) {
         return <div>Proveedor no se encuentra registrado</div>;
     }
 
-    //LA FUNCION handleSubmit ACTUALIZA LOS DATOS DEL PROVEEDOR
+    //LA FUNCION handleSubmit ACTUALIZA LOS DATOS DEL PROVEEDOR EN LA BASE DE DATOS.
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // Validation checks
-        if (
-            !proveedor.Rut ||
-            !proveedor.Nombre ||
-            !proveedor.Apellidos ||
-            !proveedor.Telefono ||
-            !proveedor.Correo
-        ) {
-            console.log('Rellena todos los campos.');
-            return;
-        }
-        try {
-            // Update the proveedor data
-            await fetch(`${URL_BACKEND}/api/proveedores/${proveedor._id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(proveedor),
-            });
-            
-
-            // Se actualiza la profesion del proveedor
-           
-            const updatedProfesionEstado = await Promise.all(
-                    profesionEstado.map(async (profesion) => {
-                        const response = await fetch(
-                            `${URL_BACKEND}/api/profesionEstados/${profesion._id}`,
-                            {
+        // Validation checks   
+        if(proveedor.Revisado === true){
+            try {
+                // Update the proveedor data
+                await fetch(`${URL_BACKEND}/api/proveedores/${proveedor._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(proveedor),
+                });
+                
+    
+                // Se actualiza la profesion del proveedor
+                const updatedProfesionEstado = await Promise.all(
+                        profesionEstado.map(async (profesion) => {
+                            const response = await fetch(
+                                `${URL_BACKEND}/api/profesionEstados/${profesion._id}`,
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(profesion),
+                                }
+                            );
+                            return response.json();
+                        })
+                );
+               
+                
+                if(proveedorServicio.length > 0){
+                    const updatedProveedorServicio = await Promise.all(
+                        proveedorServicio.map(async (servicio) => {
+                            const response = await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`, {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',
                                 },
-                                body: JSON.stringify(profesion),
-                            }
-                        );
-                        return response.json();
-                    })
-            );
-           
-            
-            if(serviciosProveedor !== null){
-                const updatedProveedorServicio = await Promise.all(
-                    serviciosProveedor.map(async (servicio) => {
-                        const response = await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(servicio),
-                        });
-                        return response.json();
-                    })
-                );
-
-            }else{
-                console.log("No hay servicios")
-            }       
-           
-
-            // Update the selected professions in the profesionEstado collection
-            const updatedSelectedProfesiones = await Promise.all(
-                selectedProfesiones.map(async (selectedProfesion) => {
-                    // Check if the selected profession already exists in profesionEstado
-                    const existingProfesion = profesionEstado.find(
-                        (profesion) => profesion.Nombre === selectedProfesion.label
+                                body: JSON.stringify(servicio),
+                            });
+                            
+                        })
                     );
-                    if (existingProfesion) {
-                        // Profession already exists, update its status
-                        return {
-                            ...existingProfesion,
-                            Activa: true, // Set the status to true or false based on your requirement
-                        };
-                    } else {
-                        // New profession, create a new entry in profesionEstado
-                        const response = await fetch(`${URL_BACKEND}/api/profesionEstados/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                IdProveedor: proveedorId,
-                                IdProfesion: selectedProfesion.IdProfesion,
-                                IdCategoria: selectedProfesion.idCategoria,
-                                Nombre: selectedProfesion.label,
-                                Rating: 0, // Set the initial rating or other required values
-                                TotalRatings: 0,
-                                Activa: true, // Set the status to true or false based on your requirement
-                            }),
-                        });
-                        return response.json();
-                    }
-                })
-            );
+    
+                }
 
-            // Delete professions from profesionEstado that are not selected anymore
-            const deletedProfesiones = profesionEstado.filter((profesion) => {
-                const selectedProfesion = selectedProfesiones.find(
-                    (selectedProfesion) => selectedProfesion.label === profesion.Nombre
+                //Guardar en una lista los servicios del proveedor que estan en Estado: false y PausadoPorOPPA: true
+                const serviciosPausados = proveedorServicio.filter(
+                    (servicio) => servicio.PausadoPorOPPA === true && servicio.Estado === false
                 );
-                return !selectedProfesion;
-            });
 
-            await Promise.all(
-                deletedProfesiones.map(async (deletedProfesion) => {
-                    await fetch(`${URL_BACKEND}/api/profesionEstados/${deletedProfesion._id}`, {
-                        method: 'DELETE',
-                    });
-                })
-            );
-            navigate('/proveedores');
-        } catch (error) {
-            console.error('Error submitting form:', error);
+                if(serviciosPausados.length > 0){
+                    //Obtner una lista de solicitudes
+                    const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
+                    
+                    serviciosPausados.map(async (servicio) => {
+                        const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
+                        solicitud.IdProfesionEstado === servicio.IdProfesion
+                        );
+
+                        //Recorrer la lista solicitudFiltrado
+                        solicitudFiltrado.map(async (solicitud) => {
+
+                            //Obtenemos conversacion de la solicitud
+                            const conversacion =  await fetch(`${URL_BACKEND}/api/conversacion/ConversacionSolicitud/${solicitud._id}`).then((response) => response.json());
+                            conversacion.map(async(conver) => {
+                                
+                                await fetch(`${URL_BACKEND}/api/conversacion/BorrarConver/${conver._id}`, {
+                                    method: 'DELETE',
+                                });
+                            })
+                           
+                            //Obtner la lista de mensaje que tenga IdConversacion igual _id de conversacion
+                            const mensajes = await fetch(`${URL_BACKEND}/api/mensaje/${conversacion._id}`).then((response) => response.json());
+
+                            //Hacer put a toda los elementos de la lista mensajes
+
+                            mensajes.map(async (mensaje) => {
+                                
+                                await fetch(`${URL_BACKEND}/api/mensaje/BorrarMensaje/${mensaje._id}`,{
+                                    method: 'DELETE'
+                                });
+                                
+                            });
+
+                            await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    IdProveedor: null,
+                                    Estado: "Buscando OPPA",
+                                    IdProfesionEstado: null
+
+                                }),
+                            });
+
+                            
+                        })  
+                    })
+                };
+
+
+    
+                // Update the selected professions in the profesionEstado collection
+                const updatedSelectedProfesiones = await Promise.all(
+                    selectedProfesiones.map(async (selectedProfesion) => {
+                        // Check if the selected profession already exists in profesionEstado
+                        const existingProfesion = profesionEstado.find(
+                            (profesion) => profesion.Nombre === selectedProfesion.label
+                        );
+                        if (existingProfesion) {
+                            // Profession already exists, update its status
+                            return {
+                                ...existingProfesion,
+                                Activa: true, // Set the status to true or false based on your requirement
+                            };
+                        } else {
+                            // New profession, create a new entry in profesionEstado
+                            const response = await fetch(`${URL_BACKEND}/api/profesionEstados/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    IdProveedor: proveedorId,
+                                    IdProfesion: selectedProfesion.IdProfesion,
+                                    IdCategoria: selectedProfesion.idCategoria,
+                                    Nombre: selectedProfesion.label,
+                                    Rating: 0, // Set the initial rating or other required values
+                                    TotalRatings: 0,
+                                    Activa: true, // Set the status to true or false based on your requirement
+                                }),
+                            });
+                            return response.json();
+                        }
+                    })
+                );
+                // Delete professions from profesionEstado that are not selected anymore
+                const deletedProfesiones = profesionEstado.filter((profesion) => {
+                    const selectedProfesion = selectedProfesiones.find(
+                        (selectedProfesion) => selectedProfesion.label === profesion.Nombre
+                    );
+                    return !selectedProfesion;
+                });
+    
+                await Promise.all(
+                    deletedProfesiones.map(async (deletedProfesion) => {
+                        const serviciosElimnar = proveedorServicio.filter(
+                            (servicio) => servicio.IdProfesion === deletedProfesion._id
+                        );
+
+                        if(serviciosElimnar.length > 0){
+                            //Obtner una lista de solicitudes
+                            const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
+                            
+                            serviciosElimnar.map(async (servicio) => {
+                                const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
+                                solicitud.IdProfesionEstado === servicio.IdProfesion
+                                );
+
+        
+                                    await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicio._id}`,{
+                                        method:'DELETE'
+                                    });
+        
+                                //Recorrer la lista solicitudFiltrado
+                                solicitudFiltrado.map(async (solicitud) => {
+        
+                                    //Obtenemos conversacion de la solicitud
+                                    const conversacion =  await fetch(`${URL_BACKEND}/api/conversacion/ConversacionSolicitud/${solicitud._id}`).then((response) => response.json());
+                                    conversacion.map(async(conver) => {
+                                        await fetch(`${URL_BACKEND}/api/conversacion/BorrarConver/${conver._id}`, {
+                                            method: 'DELETE',
+                                        });
+                                    })
+                                   
+                                    //Obtner la lista de mensaje que tenga IdConversacion igual _id de conversacion
+                                    const mensajes = await fetch(`${URL_BACKEND}/api/mensaje/${conversacion._id}`).then((response) => response.json());
+        
+                                    //Hacer put a toda los elementos de la lista mensajes
+        
+                                    mensajes.map(async (mensaje) => {
+                                        
+                                       await fetch(`${URL_BACKEND}/api/mensaje/BorrarMensaje/${mensaje._id}`,{
+                                            method: 'DELETE'
+                                        });
+                                        
+                                    });
+        
+                                    await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            IdProveedor: null,
+                                            Estado: "Buscando OPPA",
+                                            IdProfesionEstado: null
+        
+                                        }),
+                                    });
+                                    
+        
+                                    
+                                })  
+                            })
+                        };
+                        
+
+
+                        await fetch(`${URL_BACKEND}/api/profesionEstados/${deletedProfesion._id}`, {
+                            method: 'DELETE',
+                        });
+                    })
+                );
+                navigate('/proveedores');
+            } catch (error) {
+                console.error('Error submitting form:', error);
+            }
         }
+        else{
+            alert("No puede actualizar al proveedor, primero debe estar revisado.");
+        }
+       
     };
+
+    //SOLO ELIMINA EL PROVEEDOR
     const handleDelete = async () => {
-        const confirmed = window.confirm('Estás seguro de que quieres borrar este Proveedor?');
+        const confirmed = window.confirm('¿Estás seguro de que quieres borrar este Proveedor? Se eliminaran sus Profesiones, servicios y las solicitudes agendadas se liberaran eliminando las conversaciones y mensajes.');
         if (!confirmed) {
             return;
         }
@@ -208,6 +323,63 @@ const ProveedorForm = () => {
                 method: 'DELETE',
             });
             const data = await response.json();
+
+            //Eliminar ProfesionesEstado
+
+            profesionEstado.map(async (profesiones) => {
+                await fetch(`${URL_BACKEND}/api/profesionEstados/${profesiones._id}`, {
+                    method:'DELETE'
+                })
+            });
+            //Eliminar ProveedorServcios
+            proveedorServicio.map(async(servicios) => {
+                await fetch(`${URL_BACKEND}/api/proveedorServicio/${servicios._id}`, {
+                    method:'DELETE'
+                })
+            });
+            //Liberar solicitudes
+            const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
+            if(solicitudesProveedorResponse.length > 0){
+                solicitudesProveedorResponse.map(async(solicitud) => {
+
+                    //Obtenemos conversacion de la solicitud
+                    const conversacion =  await fetch(`${URL_BACKEND}/api/conversacion/ConversacionSolicitud/${solicitud._id}`).then((response) => response.json());
+                    conversacion.map(async(conver) => {
+                        
+                        await fetch(`${URL_BACKEND}/api/conversacion/BorrarConver/${conver._id}`, {
+                            method: 'DELETE',
+                        });
+                    })
+                   
+                    //Obtner la lista de mensaje que tenga IdConversacion igual _id de conversacion
+                    const mensajes = await fetch(`${URL_BACKEND}/api/mensaje/${conversacion._id}`).then((response) => response.json());
+
+                    mensajes.map(async (mensaje) => {
+                                
+                        await fetch(`${URL_BACKEND}/api/mensaje/BorrarMensaje/${mensaje._id}`,{
+                            method: 'DELETE'
+                        });
+                        
+                    });
+
+                    await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            IdProveedor: null,
+                            Estado: "Buscando OPPA",
+                            IdProfesionEstado: null
+
+                        }),
+                    });
+                })
+            }
+
+            //Eliminar Conversacion
+
+            //Eliminar mensajes
             navigate(`/proveedores`);
             console.log('Proveedor deleted successfully:', data);
         } catch (error) {
@@ -233,92 +405,233 @@ const ProveedorForm = () => {
 
     const handleProfesionActivaChange = (index, isActive) => {
         let updatedServicios = [];
-
-        setProfesionEstado((prevProfesionEstado) => {
-            const updatedProfesionEstado = [...prevProfesionEstado];
-            updatedProfesionEstado[index].Activa = isActive;
-            if(isActive === true){
-                //Se activan los servicios.
-                const servciosToUpdate = serviciosProveedor.filter(
-                    (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
-                );
-
-                updatedServicios = servciosToUpdate.map((servicio) => ({
-                    ...servicio,
-                    Estado: true,
-                    PausadoPorOPPA: false,
-                }));
-
-            }else{
-                //Se desactivan todos los servcios de la profesion.
-                const servciosToUpdate = serviciosProveedor.filter(
-                    (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
-                );
-
-                updatedServicios = servciosToUpdate.map((servicio) => ({
-                    ...servicio,
-                    Estado: false,
-                    PausadoPorOPPA: true,
-                }));
-
-                
-            };
-
-            setServicioProveedor((prevServiciosProveedor) => {
-                const updatedServiciosProveedor = [...prevServiciosProveedor];
-                updatedServicios.forEach((updatedServicio) => {
-                    const index = updatedServiciosProveedor.findIndex(
-                        (servicio) => servicio._id === updatedServicio._id
+        if(proveedor.Estado === true && proveedor.Revisado === true){
+            setProfesionEstado((prevProfesionEstado) => {
+                const updatedProfesionEstado = [...prevProfesionEstado];
+                updatedProfesionEstado[index].Activa = isActive;
+                if(isActive === true){
+                    //Se activan los servicios.
+                    const servciosToUpdate = proveedorServicio.filter(
+                        (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
                     );
-                    if (index !== -1) {
-                        updatedServiciosProveedor[index] = updatedServicio;
-                    }
+    
+                    updatedServicios = servciosToUpdate.map((servicio) => ({
+                        ...servicio,
+                        Estado: true,
+                        PausadoPorOPPA: false,
+                    }));
+
+
+    
+                }else{
+                    //Se desactivan todos los servcios de la profesion.
+                    const servciosToUpdate = proveedorServicio.filter(
+                        (servicio) => servicio.IdProfesion === updatedProfesionEstado[index]._id               
+                    );
+    
+                    updatedServicios = servciosToUpdate.map((servicio) => ({
+                        ...servicio,
+                        Estado: false,
+                        PausadoPorOPPA: true,
+                    }));
+    
+                    
+                };
+    
+                setProveedorServicio((prevProveedorServicios) => {
+                    const updatedProveedorServicios = [...prevProveedorServicios];
+                    updatedServicios.forEach((updatedServicio) => {
+                        const index = updatedProveedorServicios.findIndex(
+                            (servicio) => servicio._id === updatedServicio._id
+                        );
+                        if (index !== -1) {
+                            updatedProveedorServicios[index] = updatedServicio;
+                        }
+                    });
+                    return updatedProveedorServicios;
                 });
-                return updatedServiciosProveedor;
+
+                const algunaProfesionActiva = updatedProfesionEstado.some((profesion) => profesion.Activa);
+                console.log(algunaProfesionActiva)
+                if (!algunaProfesionActiva) {
+                    // Si no hay profesiones activas, desactivar el proveedor
+                    setProveedor((prevProveedor) => ({
+                        ...prevProveedor,
+                        Estado: false,
+                    }));
+                }
+    
+                return updatedProfesionEstado;
             });
 
-            return updatedProfesionEstado;
-        });
-
-        
+            
+        }
+        else{
+            console.log("No se puede activar profesion, primero se debe revisar y activar el proveedor.");
+        }
     };
 
     const handleProfesionesChange = (selectedOptions) => {
         setSelectedProfesiones(selectedOptions);
+        console.log(selectedOptions);
     };
 
-    //
-
+    //ACTUALIZA LA FOTO DEL PROVEEDOR.
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-    
         if (file) {
             const reader = new FileReader();
-    
             reader.onloadend = () => {
-                // Obtener el ArrayBuffer del archivo
                 const arrayBuffer = reader.result;
-                
-                // Convertir el ArrayBuffer a un array de bytes (Uint8Array)
                 const uint8Array = new Uint8Array(arrayBuffer);
-    
-                // Guardar el array de bytes en proveedor.FotoPerfil
                 setProveedor((prevProveedor) => ({
                     ...prevProveedor,
                     FotoPerfil: Array.from(uint8Array),
                 }));
             };
-    
             reader.readAsArrayBuffer(file);
-            // O también puedes usar reader.readAsBinaryString(file);
-    
-            // Resto de tu código...
             const imageUrl = URL.createObjectURL(file);
             setFotoPerfilUrl(imageUrl);
         }
     };
+    //ESTADO DE REVISADO, SI ES FALSE DE PONE EN PAUSA EL ESTADO PROVEEDOR, PROFESIONES, SERVICIOS Y LAS SOLICITUDES.
+    const EstadoRevisado = (checked) => {
+        if(!checked){
+            if (proveedorSolicitudes.length>0) {
+                const confirmed = window.confirm('Se desactiva el estado de revisado, se desactivara el proveedor en conjunto a sus profesiones, servicios y se liberan las solicitudes tomadas por el proveedor.');
+                if (confirmed) {
+                    //SI CHECKED ES FALSE SE DEBE DESACTIVAR EL PROVEEDOR, LAS PROFESIONES Y SUS SERVICIOS.
+                    if(!checked){
+                        setProveedor((prevProveedor) => ({ ...prevProveedor, Revisado: checked }));
+                        setProveedor((prevProveedor) => ({
+                            ...prevProveedor,
+                            Estado: checked
+                        }));
+            
+                        setProfesionEstado((prevProfesionEstado) => {
+                            if(prevProfesionEstado.length > 0){
+                                const updatedProfesionEstado = prevProfesionEstado.map((profesion) => ({
+                                    ...profesion,
+                                    Activa: checked,
+                                }));
+                                return updatedProfesionEstado;
+                            } 
+                        });
+                        // Modificar todos los servicios
+                        setProveedorServicio((prevProveedorServicios) => {
+                            
+                                const updatedProveedorServicios = prevProveedorServicios.map((servicio) => ({
+                                    ...servicio,
+                                    Estado: checked,
+                                    PausadoPorOPPA: !checked, // Pausar si el proveedor está inactivo
+                                }));
+                                return updatedProveedorServicios;
+                            
+                        });
+        
+                    }
+                    else {
+                        window.confirm('No se realizo ni un cambio.');
+        
+                    }
+                }
+                    
+            }
+            else{
+                setProveedor((prevProveedor) => ({ ...prevProveedor, Revisado: checked }));
+                setProveedor((prevProveedor) => ({
+                    ...prevProveedor,
+                    Estado: checked
+                }));
     
-    
+                setProfesionEstado((prevProfesionEstado) => {
+                    if(prevProfesionEstado.length > 0){
+                        const updatedProfesionEstado = prevProfesionEstado.map((profesion) => ({
+                            ...profesion,
+                            Activa: checked,
+                        }));
+                        return updatedProfesionEstado;
+                    } 
+                });
+                // Modificar todos los servicios
+                setProveedorServicio((prevProveedorServicios) => {
+                  
+                    const updatedProveedorServicios = prevProveedorServicios.map((servicio) => ({
+                        ...servicio,
+                        Estado: checked,
+                        PausadoPorOPPA: !checked, // Pausar si el proveedor está inactivo
+                    }));
+                    return updatedProveedorServicios;
+                
+            });
+                
+            }
+        }
+        else{
+            setProveedor((prevProveedor) => ({ ...prevProveedor, Revisado: checked }));
+        }
+       
+    };
+    //ESTADO DEL PROVEEDOR --> CAMBIA SUS PROFESIONES, PROFESIONES Y SERVICIOS.
+    const EstadoProveedor = (checked) => {
+        //SI REVISADO ES TRUE, CAMBIAR EL ESTADO DEL PROVEEDOR.
+        if(proveedor.Revisado === true){
+            
+        //SI CHECKED ES FALSE SE DEBE DESACTIVAR A NIVEL LOCAL LAS PROFESIONES Y SERVICIOS
+            if (!checked) {
+                if (proveedorSolicitudes.length>0) {
+                    const confirmed = window.confirm('Se desactiva el estado de revisado, se desactivara el proveedor en conjunto a sus profesiones, servicios y se liberan las solicitudes tomadas por el proveedor.');
+                    if(confirmed){
+                        setProveedor((prevProveedor) => ({ ...prevProveedor, Estado: checked }));
+                        const updatedProfesionEstado = profesionEstado.map((profesion) => ({
+                            ...profesion,
+                            Activa: checked,
+                        }));
+                        setProfesionEstado(updatedProfesionEstado);
+        
+                        // Modificar todos los servicios
+                        const updatedProveedorServicios = proveedorServicio.map((servicio) => ({
+                            ...servicio,
+                            Estado: checked,
+                            PausadoPorOPPA: !checked,
+                        }));
+                        setProveedorServicio(updatedProveedorServicios);
+                        
+
+                    }
+
+                }
+                else{
+                    setProveedor((prevProveedor) => ({ ...prevProveedor, Estado: checked }));
+                        const updatedProfesionEstado = profesionEstado.map((profesion) => ({
+                            ...profesion,
+                            Activa: checked,
+                        }));
+                        setProfesionEstado(updatedProfesionEstado);
+        
+                        // Modificar todos los servicios
+                        const updatedProveedorServicios = proveedorServicio.map((servicio) => ({
+                            ...servicio,
+                            Estado: checked,
+                            PausadoPorOPPA: !checked,
+                        }));
+                        setProveedorServicio(updatedProveedorServicios);
+                }
+            }
+            else{
+                setProveedor((prevProveedor) => ({ ...prevProveedor, Estado: checked }));
+            }
+        }
+        else{
+            
+        }
+        
+    };
+    //FUNCION PARA REGRESAR A LA PAGINA ANTERIOR
+    const handleGoBack = () => {
+        navigate('/proveedores'); 
+    };
+
     return (
         <div className="container mt-5">
             
@@ -513,7 +826,7 @@ const ProveedorForm = () => {
                         <Switch
                             id="estadoSwitch"
                             checked={proveedor.Estado || false}
-                            onChange={(checked) => setProveedor((prevProveedor) => ({ ...prevProveedor, Estado: checked }))}
+                            onChange={EstadoProveedor}
                         />
                     </div>
                     <div className="col-sm-4 d-flex align-items-center">
@@ -533,7 +846,7 @@ const ProveedorForm = () => {
                         <Switch
                             id="esSubscriptrSwitch"
                             checked={proveedor.Revisado || false}
-                            onChange={(checked) => setProveedor((prevProveedor) => ({ ...prevProveedor, Revisado: checked }))}
+                            onChange={EstadoRevisado}
                         />
                     </div>
                 </div>
@@ -631,6 +944,9 @@ const ProveedorForm = () => {
                         </button>
                         <button type="submit" className="btn btn-primary">
                             MODIFICAR
+                        </button>
+                        <button className="btn btn-secondary" onClick={handleGoBack}>
+                            VOLVER
                         </button>
                     </div>
                 </div>

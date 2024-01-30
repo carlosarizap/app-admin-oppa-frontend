@@ -20,6 +20,9 @@ import Proveedores from './components/Proveedores'
 import ProveedorForm from './components/ProveedorForm'
 import Packs from './components/Packs'
 import PackForm from './components/PackForm'
+import Solicitudes from './components/Solicitudes'
+import Pagos from './components/Pagos'
+import PagosForm from './components/PagosForm'
 
 export const URL_BACKEND = process.env.REACT_APP_SERVER_URL;
 const App = () => {
@@ -46,6 +49,9 @@ const App = () => {
           <Route path="/proveedores/:id" Component={ProveedorForm} />
           <Route path="/packs" Component={Packs} />
           <Route path="/packs/:id" Component={PackForm} />
+          <Route path="/solicitudes" Component={Solicitudes} />
+          <Route path="/pagos" Component={Pagos}/>
+          <Route path="/pagos/:id" Component={PagosForm}/>
         </Routes>
       </div>
     </Router>
