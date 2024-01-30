@@ -17,6 +17,10 @@ const Parametros = () => {
         TiempoDeViaje: 0,
         TiempoSeguirBuscando: 0,
     });
+    const [parametro, setParametro] = useState({
+        linkTerminosCliente: "",
+        LinkTerminosProveedor: "",
+    });
 
     const navigate = useNavigate();
 
@@ -79,6 +83,17 @@ const Parametros = () => {
             console.error('Error fetching tiempos:', error);
         }
     }, []);
+
+    const fetchParametrosSolicitud = useCallback(async () => {
+        try {
+            const response = await fetch(`${URL_BACKEND}/api/parametro`);
+            const data = await response.json();
+            setParametro(data[0]); // Assuming the response is an array with a single object
+        } catch (error) {
+            console.error('Error fetching parametros:', error);
+        }
+    }, []);
+
     useEffect(() => {
         fetchRegiones();
         fetchTipoRecordatorios();
@@ -86,7 +101,8 @@ const Parametros = () => {
         fetchTipoAyudaProveedors();
         fetchBancos();
         fetchTiemposSolicitud();
-    }, [fetchRegiones, fetchTipoRecordatorios, fetchTipoAyudas, fetchBancos, fetchTiemposSolicitud]);
+        fetchParametrosSolicitud();
+    }, [fetchRegiones, fetchTipoRecordatorios, fetchTipoAyudas, fetchBancos, fetchTiemposSolicitud, fetchParametrosSolicitud]);
 
     const handleDownloadExcelRegion = () => {
         const workbook = XLSX.utils.book_new();
@@ -427,13 +443,20 @@ const Parametros = () => {
 
     const handleUpdateTiemposSolicitud = async (e) => {
         e.preventDefault();
-
+    
         if (tiempo.TiempoMinimo >= tiempo.TiempoMaximo) {
             alert('El tiempo mínimo debe ser menor que el tiempo máximo');
             fetchTiemposSolicitud();
             return;
         }
-
+    
+        // Ensure TiempoSeguirBuscando is 60 or less than TiempoAnadido
+        if (tiempo.TiempoSeguirBuscando + 60 >= tiempo.TiempoAnadido) {
+            alert('El Tiempo de Buscando OPPA debe ser 60 o menos que el Tiempo Anadido');
+            fetchTiemposSolicitud();
+            return;
+        }
+    
         try {
             const response = await fetch(`${URL_BACKEND}/api/tiempo/${tiempo._id}`, {
                 method: 'PUT',
@@ -442,50 +465,59 @@ const Parametros = () => {
                 },
                 body: JSON.stringify(tiempo),
             });
-
+    
             if (response.ok) {
                 alert('Tiempos de Solicitud actualizados correctamente');
             } else {
-                //alert('Error al actualizar los Tiempos');
+                alert('Error al actualizar los Tiempos');
             }
         } catch (error) {
             console.error('Error updating tiempos de solicitud:', error);
-
-            //alert('Error al actualizar los Tiempos de Solicitud');
+            alert('Error al actualizar los Tiempos de Solicitud');
         }
     };
-
+    
 
 
     const handleChange = (e) => {
         const { id, value } = e.target;
         let parsedValue = parseInt(value, 10);
-
+    
         if (id === 'TiempoAnadido') {
             parsedValue = Math.min(Math.max(parsedValue, 0), 10000);
         } else if (id === 'TiempoMinimo') {
             parsedValue = Math.min(Math.max(parsedValue, 0), 23);
         } else if (id === 'TiempoMaximo') {
             parsedValue = Math.min(Math.max(parsedValue, 1), 24);
-        }else if (id === 'TiempoDeViaje') {
+        } else if (id === 'TiempoDeViaje') {
             parsedValue = Math.min(Math.max(parsedValue, 1), 10000);
-        }else if (id === 'TiempoSeguirBuscando') {
-            parsedValue = Math.min(Math.max(parsedValue, 1), 9000);
+        } else if (id === 'TiempoSeguirBuscando') {
+            parsedValue = Math.min(Math.max(parsedValue, 1), tiempo.TiempoAnadido - 60);
         }
-        if (parsedValue === 0) {
-            parsedValue = '0';
-        }
-        if (Number.isNaN(parsedValue) || (parsedValue >= 0 || parsedValue === 0)) {
-
-            setTiempo((prevTiempo) => ({
-                ...prevTiempo,
-                [id]: parsedValue,
+    
+        if (id === 'LinkTerminosCliente') {
+            setParametro((prevParametro) => ({
+                ...prevParametro,
+                linkTerminosCliente: value,
             }));
+        } else if (id === 'LinkTerminosProveedor') {
+            setParametro((prevParametro) => ({
+                ...prevParametro,
+                linkTerminosProveedor: value,
+            }));
+        } else {
+            if (parsedValue === 0) {
+                parsedValue = '0';
+            }
+            if (Number.isNaN(parsedValue) || (parsedValue >= 0 || parsedValue === 0)) {
+                setTiempo((prevTiempo) => ({
+                    ...prevTiempo,
+                    [id]: parsedValue,
+                }));
+            }
         }
-
     };
-
-
+    
 
 
 
@@ -691,6 +723,23 @@ const Parametros = () => {
                             value={tiempo?.TiempoSeguirBuscando || ''}
                             onChange={handleChange}
                         />
+                        <label htmlFor="linkTerminosCliente">Link Terminos y Condiciones Cliente:</label>
+<input
+    type="text"
+    id="LinkTerminosCliente"
+    className="form-control"
+    value={parametro?.LinkTerminosCliente || ''}
+    onChange={handleChange}
+/>
+
+<label htmlFor="linkTerminosProveedor">Link Terminos y Condiciones Proveedor:</label>
+<input
+    type="text"
+    id="LinkTerminosProveedor"
+    className="form-control"
+    value={parametro?.LinkTerminosProveedor || ''}
+    onChange={handleChange}
+/>
 
                     </div>
                     <div className="row justify-content-center">
