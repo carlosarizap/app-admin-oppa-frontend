@@ -43,6 +43,7 @@ const PagosForm = () =>{
             },
             body: JSON.stringify(solicitud),
         });
+        console.log(respuesta.json)
         
         navigate('/pagos');
     };
