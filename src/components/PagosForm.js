@@ -43,7 +43,7 @@ const PagosForm = () =>{
             },
             body: JSON.stringify(solicitud),
         });
-        console.log(respuesta.json)
+        console.log("Respuesta de actualizacio:", respuesta.status)
         
         navigate('/pagos');
     };
