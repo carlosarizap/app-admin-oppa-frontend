@@ -25,7 +25,7 @@ const Solicitudes = () => {
         setSelectedDate(hoy);
         setFechaSeleccionada(hoy);
         //Obtner todas las solicitudes en estado "Buscando OPPA"
-        const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/BuscandoOppa`).then((response) => response.json());
+        const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
          // Filtrar las solicitudes según la fecha
         const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
             const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
@@ -45,17 +45,25 @@ const Solicitudes = () => {
             const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
             const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
             
-            mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
-            mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            if(clienteResponse != null && apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
+            
 
           }
-          else if(solicitud.IdCliente !== null){
+          else if(solicitud.IdCliente !== null && solicitud.IdApoderado  == null){
             const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
-            mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+            if(clienteResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+            }
           }
-          else{
+          else if(solicitud.IdCliente == null && solicitud.IdApoderado  !== null){
             const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
-            mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            
+            if(apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
           }
         };
 
@@ -72,7 +80,7 @@ const Solicitudes = () => {
   const handleDateChange = async (date) => {
     setSelectedDate(date);
     setFechaSeleccionada(date);
-    const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/BuscandoOppa`).then((response) => response.json());
+    const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
          // Filtrar las solicitudes según la fecha
         const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
             const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
@@ -93,17 +101,25 @@ const Solicitudes = () => {
             const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
             const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
             
-            mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
-            mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            if(clienteResponse != null && apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
+            
 
           }
-          else if(solicitud.IdCliente !== null){
+          else if(solicitud.IdCliente !== null && solicitud.IdApoderado  == null){
             const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
-            mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+            if(clienteResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+            }
           }
-          else{
+          else if(solicitud.IdCliente == null && solicitud.IdApoderado  !== null){
             const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
-            mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            
+            if(apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
           }
         };
 
@@ -146,11 +162,12 @@ const Solicitudes = () => {
                     <tr key={solicitud._id} >
                         <td>{solicitud.NombreServicio}</td>
                         <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A'}
+                          {solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente) ? (clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A') : 'N/A'}
                         </td>
                         <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {clienteMap.get(solicitud.IdApoderado)?.Rut || 'N/A'}
+                          {solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado) ? (clienteMap.get(solicitud.IdApoderado)?.Rut || 'N/A') : 'N/A'}
                         </td>
+
                         <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {solicitud.Region}
                         </td>
@@ -161,11 +178,20 @@ const Solicitudes = () => {
                             {format(new Date(solicitud.Fecha), 'yyyy-MM-dd', { locale: esLocale })}
                         </td>
                         <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {solicitud.Hora}
+                            {solicitud.Hora.substring(0, 5)}
                         </td>
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <td style={{
+                            maxWidth: '200px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            color: solicitud.Estado === 'Buscando OPPA' ? 'orange' :
+                                  solicitud.Estado === 'Agendado' ? 'green' :
+                                  solicitud.Estado === 'Aprobado' ? 'aquamarine' :
+                                  solicitud.Estado === 'Finalizado' ? 'blue' : 'black'
+                          }}>
                             {solicitud.Estado}
-                        </td>
+                    </td>
                                    
                     </tr>
                 ))}
