@@ -150,6 +150,7 @@ const Solicitudes = () => {
                         </td>
                         <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {clienteMap.get(solicitud.IdApoderado)?.Rut || 'N/A'}
+
                         </td>
                         <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {solicitud.Region}
