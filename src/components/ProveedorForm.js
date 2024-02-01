@@ -167,7 +167,7 @@ const ProveedorForm = () => {
                                 
                             });
 
-                            await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
+                            await fetch(`${URL_BACKEND}/api/solicitud/actualizarSolicitud/${solicitud._id}`, {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',
