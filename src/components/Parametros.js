@@ -495,18 +495,7 @@ const Parametros = () => {
         } else if (id === 'TiempoSeguirBuscando') {
             parsedValue = Math.min(Math.max(parsedValue, 1), tiempo.TiempoAnadido - 60);
         }
-    
-        if (id === 'LinkTerminosCliente') {
-            setParametro((prevParametro) => ({
-                ...prevParametro,
-                linkTerminosCliente: value,
-            }));
-        } else if (id === 'LinkTerminosProveedor') {
-            setParametro((prevParametro) => ({
-                ...prevParametro,
-                linkTerminosProveedor: value,
-            }));
-        }
+
     
         if (parsedValue === 0) {
             parsedValue = '0';
@@ -518,7 +507,14 @@ const Parametros = () => {
             }));
         }
     };
-    
+
+    const handleLinkTerminosChange = (e) => {
+        const { id, value } = e.target;
+        setParametro((prevParametro) => ({
+            ...prevParametro,
+            [id]: value,
+        }));
+    };
     
 
 
@@ -726,22 +722,22 @@ const Parametros = () => {
                             onChange={handleChange}
                         />
                         <label htmlFor="linkTerminosCliente">Link Terminos y Condiciones Cliente:</label>
-<input
-    type="text"
-    id="LinkTerminosCliente"
-    className="form-control"
-    value={parametro?.LinkTerminosCliente || ''}
-    onChange={handleChange}
-/>
+                    <input
+                        type="text"
+                        id="LinkTerminosCliente"
+                        className="form-control"
+                        value={parametro?.LinkTerminosCliente || ''}
+                        onChange={handleLinkTerminosChange}
+                    />
 
-<label htmlFor="linkTerminosProveedor">Link Terminos y Condiciones Proveedor:</label>
-<input
-    type="text"
-    id="LinkTerminosProveedor"
-    className="form-control"
-    value={parametro?.LinkTerminosProveedor || ''}
-    onChange={handleChange}
-/>
+                    <label htmlFor="linkTerminosProveedor">Link Terminos y Condiciones Proveedor:</label>
+                    <input
+                        type="text"
+                        id="LinkTerminosProveedor"
+                        className="form-control"
+                        value={parametro?.LinkTerminosProveedor || ''}
+                        onChange={handleLinkTerminosChange}
+                    />
 
                     </div>
                     <div className="row justify-content-center">
