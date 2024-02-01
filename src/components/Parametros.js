@@ -466,15 +466,23 @@ const Parametros = () => {
                 },
                 body: JSON.stringify(tiempo),
             });
+
+            const responseTerminos = await fetch(`${URL_BACKEND}/api/parametro/${parametro._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(parametro),
+            });
     
-            if (response.ok) {
-                alert('Tiempos de Solicitud actualizados correctamente');
+            if (response.ok && responseTerminos.ok) {
+                alert('Parametros actualizados correctamente');
             } else {
-                alert('Error al actualizar los Tiempos');
+                alert('Error al actualizar los Parametros');
             }
         } catch (error) {
-            console.error('Error updating tiempos de solicitud:', error);
-            alert('Error al actualizar los Tiempos de Solicitud');
+            console.error('Error updating Parametros :', error);
+            alert('Error al actualizar los Parametros ');
         }
     };
     
