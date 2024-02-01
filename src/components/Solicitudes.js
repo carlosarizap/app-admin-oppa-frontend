@@ -25,7 +25,7 @@ const Solicitudes = () => {
         setSelectedDate(hoy);
         setFechaSeleccionada(hoy);
         //Obtner todas las solicitudes en estado "Buscando OPPA"
-        const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/BuscandoOppa`).then((response) => response.json());
+        const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
          // Filtrar las solicitudes según la fecha
         const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
             const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
