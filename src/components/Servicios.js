@@ -179,6 +179,7 @@ const Servicios = () => {
               <th>Sup. Categoría</th>
               <th>Categoria</th>
               <th>Precio</th>
+              <th>Duración</th>
               <th>Comisión</th>
               <th>Descuento</th>
               <th>Estado</th>
@@ -196,6 +197,7 @@ const Servicios = () => {
                   <td>{superCategoria ? superCategoria.Nombre : ''}</td>
                   <td>{categoria ? categoria.Nombre : ''}</td>
                   <td>{servicio.Precio}</td>
+                  <td>{servicio.DuracionMinutos}</td>
                   <td>{formatDescuento(servicio.Comision)}</td>
                   <td>{formatDescuento(servicio.Descuento)}</td>
                   <td>

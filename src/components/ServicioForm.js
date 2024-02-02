@@ -76,6 +76,17 @@ const ServicioForm = () => {
       }
     }
 
+    if (name === 'DuracionMinutos') {
+      const parsedValue = parseFloat(inputValue);
+      if (isNaN(parsedValue) || parsedValue < 0 || parsedValue >= 1000) {
+        inputValue = '';
+
+      } else {
+        inputValue = parsedValue;
+
+      }
+    }
+
     if (inputValue === 0) {
       inputValue = '0';
     }
@@ -294,8 +305,20 @@ const ServicioForm = () => {
           </div>
         </div>
         <div className="row align-items-center">
-          <div className="col-sm-6">
-            <h5 className="mb-3 text-start">
+        <h5 className="col-sm-6 mb-3 text-start">
+            Duración (min.):
+            <input
+              className="form-control"
+              type="number"
+              name="DuracionMinutos"
+              value={servicio?.DuracionMinutos || ''}
+              onChange={handleInputChange}
+            />
+        </h5>
+          
+
+          <div className="col-sm-4 d-flex align-items-center">
+          <h5 className="mb-3 text-start">
               Fecha Desde:
               <DatePicker
                 className='form-control'
@@ -309,9 +332,13 @@ const ServicioForm = () => {
               />
 
             </h5>
+            
           </div>
 
-          <div className="col-sm-4 d-flex align-items-center">
+        </div>
+              <div className='row'>
+              <div className="col-sm-6">
+            
 
             <h5 className="mb-3 text-start">
               Fecha Hasta:
@@ -328,9 +355,10 @@ const ServicioForm = () => {
 
             </h5>
           </div>
+              </div>
+        
 
-        </div>
-
+        
         <div className="row justify-content-center">
           <div className="col-6">
             {!isCreating && (
