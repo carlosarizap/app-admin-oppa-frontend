@@ -480,6 +480,14 @@ const ProveedorForm = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            const maxSizeInBytes = 2 * 1024 * 1024;
+            if (file.size > maxSizeInBytes) {
+                // Mostrar un mensaje de error o realizar alguna acción según tus necesidades
+                console.error('La imagen excede el tamaño máximo permitido 2 mb.');
+                return;
+            }
+
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 const arrayBuffer = reader.result;
