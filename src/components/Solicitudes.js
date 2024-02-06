@@ -10,15 +10,16 @@ import { URL_BACKEND } from "../App";
 const Solicitudes = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
-  const [solicitudesBuscandoOppa, setSolicitudesBuscandoOppa] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEstado, setSelectedEstado] = useState('Todos');
+  const [solicitudes, setSolicitudes] = useState([]);
   const [clienteMap, setClienteMap] = useState(new Map());
+  const [solicutudesCalendar, setSolicitudesCalendar] = useState([]);
+
 
   useEffect(() => {
     fetchData();
-    
-
   }, []);
-
   const fetchData = async () => {
     try {
         const hoy = new Date();
@@ -27,6 +28,7 @@ const Solicitudes = () => {
         //Obtner todas las solicitudes en estado "Buscando OPPA"
         const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
          // Filtrar las solicitudes según la fecha
+        
         const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
             const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
             return (
@@ -35,8 +37,10 @@ const Solicitudes = () => {
             fechaSolicitud.getFullYear() === hoy.getFullYear()
             );
         });
+
+        setSolicitudesCalendar(solicitudesBuscandoOppaResponse);
     
-        setSolicitudesBuscandoOppa(solicitudesFiltradas);
+        setSolicitudes(solicitudesFiltradas);
         const mapaClientes = new Map();
         //Recorrer la lista de solicitudesFiltradas
         for (const solicitud of solicitudesFiltradas) {
@@ -67,20 +71,19 @@ const Solicitudes = () => {
           }
         };
 
-        setClienteMap(mapaClientes);
+        setClienteMap(mapaClientes)
+        console.log(solicitudesBuscandoOppaResponse)
 
 
     }catch(error){
         
     }
   }
-
-
-
   const handleDateChange = async (date) => {
     setSelectedDate(date);
     setFechaSeleccionada(date);
     const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
+    setSolicitudesCalendar(solicitudesBuscandoOppaResponse);
          // Filtrar las solicitudes según la fecha
         const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
             const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
@@ -91,7 +94,7 @@ const Solicitudes = () => {
             );
         });
     
-        setSolicitudesBuscandoOppa(solicitudesFiltradas);
+        setSolicitudes(solicitudesFiltradas);
 
         const mapaClientes = new Map();
         //Recorrer la lista de solicitudesFiltradas
@@ -127,80 +130,190 @@ const Solicitudes = () => {
 
   };
 
+   //Obtiene los valores del input
+   const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Función para manejar el cambio en el valor del combobox
+  const handleEstadoChange = (e) => {
+      setSelectedEstado(e.target.value); // Actualiza el estado seleccionado
+  };
+
+ //metodo de filtrados
+ let solicitudFiltrada = []
+ if(!searchQuery && selectedEstado  === "Todos"){
+   solicitudFiltrada = solicitudes;
+ }
+ else if(searchQuery && selectedEstado === "Todos"){
+  
+   solicitudFiltrada = solicitudes.filter((solicitud) => {
+     const clienteRut = solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente)
+       ? clienteMap.get(solicitud.IdCliente)?.Rut.toLowerCase()
+       : '';
+     const apoderadoRut = solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado)
+       ? clienteMap.get(solicitud.IdApoderado)?.Rut.toLowerCase()
+       : '';
+     
+     // Filtrar si el rut del cliente o del apoderado coincide con la búsqueda
+     return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
+   });
+
+ }
+ else if(!searchQuery && selectedEstado  !== "Todos"){
+   solicitudFiltrada = solicitudes.filter((solicitud) => solicitud.Estado === selectedEstado);
+   
+ }
+ else if(searchQuery && selectedEstado !== "Todos"){
+
+   
+   let Filtrada = solicitudes.filter((solicitud) => solicitud.Estado === selectedEstado);
+
+   solicitudFiltrada = Filtrada.filter((solicitud) => {
+     const clienteRut = solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente)
+       ? clienteMap.get(solicitud.IdCliente)?.Rut.toLowerCase()
+       : '';
+     const apoderadoRut = solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado)
+       ? clienteMap.get(solicitud.IdApoderado)?.Rut.toLowerCase()
+       : '';
+     
+     // Filtrar si el rut del cliente o del apoderado coincide con la búsqueda
+     return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
+   });
+ }
+
+ const fechasEspecificas = [
+  new Date(2024, 1, 10), // 10 de febrero de 2024
+  new Date(2024, 1, 15), // 15 de febrero de 2024
+  new Date(2024, 0, 20),  // 20 de febrero de 2024
+  new Date(2024, 2, 1)
+];
   return (
     <div>
       <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
-      <h1>Servicios Solicitados</h1>
-    <div style={{ display: 'flex' }}>
-      <div style={{ marginRight: '20px' }}>
-        <Calendar
-          value={selectedDate}
-          onChange={handleDateChange}
-        />
-      </div>
       <div>
-        <div>
-          <p>Fecha seleccionada: {fechaSeleccionada ? format(fechaSeleccionada, 'yyyy-MM-dd', { locale: esLocale }) : 'Ninguna'}</p>
-        </div>
-        <div className="tabla-container">
-          <table className='table'>
-            <thead>
-              <tr>
-                <th>Servicio</th>
-                <th>Rut Cliente</th>
-                <th>Rut Apoderado</th>
-                <th>Region</th>
-                <th>Comuna</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Estado</th>
+      <div className="d-flex justify-content-between align-items-center">
+          <h1>Servicios Solicitados</h1>
+          <div className="input-buttons-container d-flex align-items-center">
+            <div className='d.flex'>
+              <div>
+                <select className="form-control" value={selectedEstado} onChange={handleEstadoChange}>
+                  <option value="Todos">Todos</option>
+                  <option value="Buscando OPPA">Buscando OPPA</option>
+                  <option value="Agendado">Agendado</option>
+                  <option value="Aprobado">Aprobado</option>
+                  <option value="Finalizado">Finalizado</option>
+              </select>
+              </div>
+              <div className="form-group has-search">
+                <span className="fa fa-search form-control-feedback"></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Buscar por RUT..."
+                  />
+                  {searchQuery && (
+                    <button
+                      className="btn btn-clear"
+                      onClick={() => setSearchQuery('')}
+                      >
+                      <span className="fa fa-times"></span>
+                    </button>
+                    )}
+              </div>
+              
+            </div>
+          </div>
+      </div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ marginRight: '20px' }}>
+        <Calendar
+  value={selectedDate}
+  onChange={handleDateChange}
+  tileContent={({ date }) => {
+    // Verificar si el día actual coincide con alguna fecha específica
+    const esFechaEspecifica = solicutudesCalendar.some((solicitud) =>{
+      const fechaSolicitud = new Date(solicitud.Fecha);
+      return(
+        fechaSolicitud.getDate() === date.getDate() &&
+        fechaSolicitud.getMonth() === date.getMonth() &&
+        fechaSolicitud.getFullYear() === date.getFullYear() &&
+        solicitud.Estado === "Buscando OPPA"
+      );
+    });
 
-              </tr>
-            </thead>
-            <tbody>
-                {solicitudesBuscandoOppa.map((solicitud) => (
-                    <tr key={solicitud._id} >
-                        <td>{solicitud.NombreServicio}</td>
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente) ? (clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A') : 'N/A'}
-                        </td>
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado) ? (clienteMap.get(solicitud.IdApoderado)?.Rut || 'N/A') : 'N/A'}
-                        </td>
+    // Si el día actual coincide con una fecha específica, mostrar un punto rojo
+    if (esFechaEspecifica) {
+      return <div style={{ backgroundColor: 'red', borderRadius: '50%', width: '5px', height: '5px'}} />;
+    }
 
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {solicitud.Region}
-                        </td>
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {solicitud.Comuna}
-                        </td>
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {format(new Date(solicitud.Fecha), 'yyyy-MM-dd', { locale: esLocale })}
-                        </td>
-                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {solicitud.Hora.substring(0, 5)}
-                        </td>
-                        <td style={{
-                            maxWidth: '200px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            color: solicitud.Estado === 'Buscando OPPA' ? 'orange' :
-                                  solicitud.Estado === 'Agendado' ? 'green' :
-                                  solicitud.Estado === 'Aprobado' ? 'aquamarine' :
-                                  solicitud.Estado === 'Finalizado' ? 'blue' : 'black'
-                          }}>
-                            {solicitud.Estado}
-                    </td>
-                                   
-                    </tr>
-                ))}
-                </tbody>
-          </table>
+    // Si no es una fecha específica, devolver null para no mostrar nada
+    return null;
+  }}
+/>
+
         </div>
+          <div className="tabla-container">
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th>Rut Cliente</th>
+                  <th>Rut Apoderado</th>
+                  <th>Region</th>
+                  <th>Comuna</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Estado</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                  {solicitudFiltrada.map((solicitud) => (
+                      <tr key={solicitud._id} >
+                          <td>{solicitud.NombreServicio}</td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente) ? (clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A') : 'N/A'}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado) ? (clienteMap.get(solicitud.IdApoderado)?.Rut || 'N/A') : 'N/A'}
+                          </td>
+
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {solicitud.Region}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {solicitud.Comuna}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {format(new Date(solicitud.Fecha), 'yyyy-MM-dd', { locale: esLocale })}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {solicitud.Hora.substring(0, 5)}
+                          </td>
+                          <td style={{
+                              maxWidth: '200px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              color: solicitud.Estado === 'Buscando OPPA' ? 'orange' :
+                                    solicitud.Estado === 'Agendado' ? 'green' :
+                                    solicitud.Estado === 'Aprobado' ? 'aquamarine' :
+                                    solicitud.Estado === 'Finalizado' ? 'blue' : 'black'
+                            }}>
+                              {solicitud.Estado}
+                      </td>
+                                    
+                      </tr>
+                  ))}
+                  </tbody>
+            </table>
+          </div>
       </div>
     </div>
-    </div>
+  </div>
 
     
   );
