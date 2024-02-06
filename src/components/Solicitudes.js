@@ -9,7 +9,6 @@ import { URL_BACKEND } from "../App";
 
 const Solicitudes = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEstado, setSelectedEstado] = useState('Todos');
   const [solicitudes, setSolicitudes] = useState([]);
@@ -24,7 +23,6 @@ const Solicitudes = () => {
     try {
         const hoy = new Date();
         setSelectedDate(hoy);
-        setFechaSeleccionada(hoy);
         //Obtner todas las solicitudes en estado "Buscando OPPA"
         const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
          // Filtrar las solicitudes según la fecha
@@ -81,7 +79,6 @@ const Solicitudes = () => {
   }
   const handleDateChange = async (date) => {
     setSelectedDate(date);
-    setFechaSeleccionada(date);
     const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
     setSolicitudesCalendar(solicitudesBuscandoOppaResponse);
          // Filtrar las solicitudes según la fecha
@@ -181,13 +178,6 @@ const Solicitudes = () => {
      return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
    });
  }
-
- const fechasEspecificas = [
-  new Date(2024, 1, 10), // 10 de febrero de 2024
-  new Date(2024, 1, 15), // 15 de febrero de 2024
-  new Date(2024, 0, 20),  // 20 de febrero de 2024
-  new Date(2024, 2, 1)
-];
   return (
     <div>
       <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
