@@ -182,11 +182,11 @@ const Solicitudes = () => {
     <div>
       <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
       <div>
-      <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center">
           <h1>Servicios Solicitados</h1>
           <div className="input-buttons-container d-flex align-items-center">
-            <div className='d.flex'>
-              <div>
+            <div className='d-flex'>
+              <div style={{ marginRight: '15px' }}>
                 <select className="form-control" value={selectedEstado} onChange={handleEstadoChange}>
                   <option value="Todos">Todos</option>
                   <option value="Buscando OPPA">Buscando OPPA</option>
@@ -246,7 +246,7 @@ const Solicitudes = () => {
 
         </div>
           <div className="tabla-container">
-            <table className='table'>
+            <table className='tabla'>
               <thead>
                 <tr>
                   <th>Servicio</th>

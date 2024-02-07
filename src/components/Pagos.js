@@ -110,7 +110,7 @@ const Pagos = () => {
               <p>Fecha seleccionada: {fechaSeleccionada ? format(fechaSeleccionada, 'yyyy-MM-dd', { locale: esLocale }) : 'Ninguna'}</p>
             </div>
             <div className="tabla-container">
-              <table className='table'>
+              <table className='tabla'>
                 <thead>
                   <tr>
                     <th>Fecha</th>

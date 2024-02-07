@@ -272,3 +272,49 @@ input[name="subscriptorFilter32"]:hover ~ label[for="estadoFilter31"] {
   border-radius: 50%;  /* Esto hará que la imagen sea esférica */
   /* Agrega estilos adicionales según tus necesidades */
 }
+
+/* Estilos personalizados para el calendario */
+.react-calendar {
+  max-width: 300px;
+  background-color: #fff;
+  border-radius: 10px;
+  font-family: 'Roboto', sans-serif; /* Aplicar la fuente Roboto */
+}
+
+/* Estilo para los días activos */
+.react-calendar__tile--active {
+  background-color: #1c4a9b !important;
+  color: #fff;
+}
+
+/* Estilo para el día actual */
+.react-calendar__tile--now {
+  background-color: #fb9304 !important;
+  color: #fff;
+}
+
+/* Estilo para circundar el día seleccionado */
+.react-calendar__tile--active:enabled:focus,
+.react-calendar__tile--active:enabled:hover {
+  border: 2px solid #1c4a9b !important;
+  border-radius: 50%;
+}
+
+/* Estilo para circundar el día de hoy */
+.react-calendar__tile--now:enabled:focus,
+.react-calendar__tile--now:enabled:hover,
+.react-calendar__tile--now {
+  border: none !important; /* Eliminar cualquier borde */
+  border-radius: 50%; /* Hacer el día de hoy circular */
+}
+
+/* Cambiar el color de fondo durante el hover */
+.react-calendar__tile:hover {
+  background-color: #f0f0f0 !important; /* Cambiar a un tono más claro */
+  border-radius: 50%; /* Hacer el hover circular */
+}
+
+/* Cambiar el color del texto durante el hover */
+.react-calendar__tile:hover abbr {
+  color: #000 !important; /* Cambiar el texto a negro */
+}
