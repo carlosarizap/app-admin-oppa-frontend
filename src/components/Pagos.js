@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {useNavigate } from 'react-router-dom';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import es from 'date-fns/locale/es';
 import { format } from 'date-fns';
 import esLocale from 'date-fns/locale/es';
 import '../index.css';
@@ -10,105 +11,179 @@ import { URL_BACKEND } from "../App";
 
 const Pagos = () => {
   const navigate = useNavigate();
-
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
-    const [solicitudesFinalizdas, setSolicitudesFinalizadas] = useState([]);
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    let [solicitudesFinalizdas, setSolicitudesFinalizadas] = useState([]);
     const [proveedorMap, setProveedorMap] = useState(new Map());
+    const [startDate, setStartDate] = useState(firstDayOfMonth);
+    const [endDate, setEndDate] = useState(new Date());
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedEstado, setSelectedEstado] = useState("NoPagado");
 
     useEffect(() => {
-        fetchData();
+      fetchData();
+    }, [startDate, endDate, selectedEstado]); // Se ejecutará fetchData cada vez que startDate o endDate cambie
+  
+    const fetchData = async () => {
+      try {
+        // Hacer un método get para obtener las solicitudes
+        let solicitudFinalizadoFiltrado = [];
+  
+        const solicitudesFinalizadasResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesFinalizados`).then((response) => response.json());
         
-    
-      }, []);
-    
-      const fetchData = async () => {
-        try {
-          const hoy = new Date();
-          setSelectedDate(hoy);
-          setFechaSeleccionada(hoy);
+        if(selectedEstado === "Todos"){
+          // Filtrar las solicitudes finalizadas según el rango de fechas
+          solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.filter((solicitud) => {
+          const fecha = new Date(solicitud.Fecha);
+          const fechaSolicitud = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
-          //Hacer un metdo get para obtner las solicitudes
-          const solicitudesFinalizdasResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesFinalizados`).then((response) => response.json());
-
-          //Filtrar las solicitudes finalizadas segun el año, mes y dia
-          const solicitudFinalizadoFiltrado = solicitudesFinalizdasResponse.filter((solicitud) => {
-            const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
-            return (
-            fechaSolicitud.getDate() === hoy.getDate() &&
-            fechaSolicitud.getMonth() === hoy.getMonth() &&
-            fechaSolicitud.getFullYear() === hoy.getFullYear()
-            );
+          return fechaSolicitud >= startDate && fechaSolicitud <= endDate;
           });
-          setSolicitudesFinalizadas(solicitudFinalizadoFiltrado);
-
-          const mapaProveedor = new Map();
-
-          for(const solicitud of solicitudFinalizadoFiltrado){
-            const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${solicitud.IdProveedor}`).then((response) => response.json());
-            if(proveedorResponse !== null){
-              mapaProveedor.set(solicitud.IdProveedor, {id: solicitud._id, Rut: proveedorResponse.Rut})
-            }
-          };
-
-          setProveedorMap(mapaProveedor);
-
-        }catch(error){
-            
+        
         }
-      }
+        else if(selectedEstado === "Pagado"){
+         // Filtrar las solicitudes finalizadas según el rango de fechas
+         console.log(true)
+         solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.filter((solicitud) => {
+          const fecha = new Date(solicitud.Fecha);
+          const fechaSolicitud = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
-    const handleDateChange = async (date) => {
-        setSelectedDate(date);
-        setFechaSeleccionada(date);
+          return fechaSolicitud >= startDate && fechaSolicitud <= endDate && solicitud.PagadoPorOppa === true;
+          });
 
-        //Hacer un metdo get para obtner las solicitudes
-        const solicitudesFinalizdasResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesFinalizados`).then((response) => response.json());
+        }
+        else if(selectedEstado === "NoPagado"){
+        // Filtrar las solicitudes finalizadas según el rango de fechas
+        console.log(false)
+        solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.filter((solicitud) => {
+          const fecha = new Date(solicitud.Fecha);
+          const fechaSolicitud = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
-        //Filtrar las solicitudes finalizadas segun el año, mes y dia
-        const solicitudFinalizadoFiltrado = solicitudesFinalizdasResponse.filter((solicitud) => {
-          const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
-          return (
-          fechaSolicitud.getDate() === date.getDate() &&
-          fechaSolicitud.getMonth() === date.getMonth() &&
-          fechaSolicitud.getFullYear() === date.getFullYear()
-          );
-        });
+          return fechaSolicitud >= startDate && fechaSolicitud <= endDate && solicitud.PagadoPorOppa === false;
+          });    
+        }
+
+        
         setSolicitudesFinalizadas(solicitudFinalizadoFiltrado);
-
         const mapaProveedor = new Map();
-
-        for(const solicitud of solicitudFinalizadoFiltrado){
+  
+        for (const solicitud of solicitudFinalizadoFiltrado) {
           const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${solicitud.IdProveedor}`).then((response) => response.json());
-          if(proveedorResponse !== null){
-            mapaProveedor.set(solicitud.IdProveedor, {id: solicitud._id, Rut: proveedorResponse.Rut})
+          if (proveedorResponse !== null) {
+            mapaProveedor.set(solicitud.IdProveedor, { id: solicitud._id, Rut: proveedorResponse.Rut });
           }
-        };
-
+        }
+  
         setProveedorMap(mapaProveedor);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
     };
-
-    //REDIRECCION A LA PAGINA PROVEEDORFORMS.
-    const handleRowClickSolicitudPago = (SolicitudId) => {
-          navigate(`/pagos/${SolicitudId}`);
+    
+    const handleStartDateChange = date => {
+      setStartDate(date);
+      if (date > endDate) {
+        setEndDate(date);
+      }
+    };      
+  const handleEndDateChange = date => {
+      setEndDate(date);
+      if (date < startDate) {
+        setStartDate(date);
+      }
     };
+    //Obtiene los valores del input
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };      
 
-    return(
+  // Función para manejar el cambio en el valor del combobox
+  const handleEstadoChange = (e) => {
+    setSelectedEstado(e.target.value); // Actualiza el estado seleccionado
+  };
+
+  if(searchQuery) {
+    solicitudesFinalizdas = solicitudesFinalizdas.filter((solicitud) => {
+      const proveedorRut = solicitud.IdProveedor !== null && proveedorMap.has(solicitud.IdProveedor)
+        ? proveedorMap.get(solicitud.IdProveedor)?.Rut.toLowerCase()
+        : '';
+  
+      return proveedorRut.includes(searchQuery.toLowerCase());
+    });
+  }
+  
+
+  //REDIRECCION A LA PAGINA PROVEEDORFORMS.
+  const handleRowClickSolicitudPago = (SolicitudId) => {
+    navigate(`/pagos/${SolicitudId}`);
+  };
+
+  return(
       <div >
         <h1>Pagos</h1>
         <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
         <div>
-          <div style={{ display: 'flex' }}>
-            <div style={{ marginRight: '20px' }}>
-              <Calendar
-                value={selectedDate}
-                onChange={handleDateChange}
-              />
+          <div>
+          <div className="input-buttons-container d-flex align-items-center">
+            <div className='d-flex'>
+              <div>
+                <label>Desde:</label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={handleStartDateChange}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  locale={es} // Establecer el idioma español
+                  dateFormat="dd/MM/yyyy" // Formato de fecha: día, mes y año        
+                />
+              </div>
+              
+              <div>
+                <label>Hasta:</label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={handleEndDateChange}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  locale={es} // Establecer el idioma español
+                  dateFormat="dd/MM/yyyy" // Formato de fecha: día, mes y año 
+                />
+              </div>
             </div>
-            <div>
-            <div>
-              <p>Fecha seleccionada: {fechaSeleccionada ? format(fechaSeleccionada, 'yyyy-MM-dd', { locale: esLocale }) : 'Ninguna'}</p>
-            </div>
+          </div>
+          <div className='d-flex'>
+            <label>Estado:</label>
+            <div style={{ marginRight: '15px' }}>
+                <select className="form-control" value={selectedEstado} onChange={handleEstadoChange}>
+                  <option value="Todos">Todos</option>
+                  <option value="NoPagado">No Pagado</option>
+                  <option value="Pagado">Pagado</option>
+              </select>
+          </div>
+          </div>
+          
+          
+          <div className="form-group has-search">
+                <span className="fa fa-search form-control-feedback"></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Buscar por RUT..."
+                  />
+                  {searchQuery && (
+                    <button
+                      className="btn btn-clear"
+                      onClick={() => setSearchQuery('')}
+                      >
+                      <span className="fa fa-times"></span>
+                    </button>
+                    )}
+          </div>
             <div className="tabla-container">
               <table className='tabla'>
                 <thead>
@@ -124,7 +199,7 @@ const Pagos = () => {
                 {solicitudesFinalizdas.map((solicitud) => (
                       <tr key={solicitud._id} onDoubleClick={() => handleRowClickSolicitudPago(solicitud._id)}>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {format(new Date(solicitud.Fecha), 'yyyy-MM-dd', { locale: esLocale })}
+                              {format(new Date(solicitud.Fecha), 'dd-MM-yyyy', { locale: esLocale })}
                           </td>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {solicitud.NombreServicio}
@@ -133,8 +208,9 @@ const Pagos = () => {
                           {proveedorMap.get(solicitud.IdProveedor)?.Rut || 'N/A'}
                           </td>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {solicitud.Precio}
+                              {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(solicitud.Precio)}
                           </td>
+
                           <td>
                               {solicitud.PagadoPorOppa? (
                                 <span style={{color: 'green'}}>Pagado</span>
@@ -147,7 +223,7 @@ const Pagos = () => {
               </table>
             </div>
           </div>
-      </div>
+      
       </div>
       </div>
 
