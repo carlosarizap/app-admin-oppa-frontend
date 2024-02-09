@@ -318,3 +318,30 @@ input[name="subscriptorFilter32"]:hover ~ label[for="estadoFilter31"] {
 .react-calendar__tile:hover abbr {
   color: #000 !important; /* Cambiar el texto a negro */
 }
+
+.input-buttons-container {
+  display: flex;
+  justify-content: flex-start; /* Align items to the left */
+  align-items: center;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.input-group h6 {
+  margin-right: 10px; /* Adjust spacing between label and input */
+  margin-bottom: 0; /* Remove bottom margin to reduce space */
+}
+
+.form-group.has-search {
+  margin-left: 10px; /* Adjust margin between Estado and search input */
+}
+
+.form-control {
+  width: auto; /* Allow the input width to adjust */
+  min-width: 150px; /* Set a minimum width for the search input */
+}
+
+
