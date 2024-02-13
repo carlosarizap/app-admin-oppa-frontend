@@ -37,10 +37,9 @@ const PagosForm = () =>{
         e.preventDefault();
         try {
             console.log("Id de solicitud: ", solicitudId);
-            console.log("Id de solicitud: ", solicitud);
 
 
-            const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/actualizarSolicitud/${solicitudId}`, {
+            const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${solicitudId}`, {
                 method:'PUT',
                 headers: {
                     'Content-Type': 'application/json',
