@@ -35,18 +35,26 @@ const PagosForm = () =>{
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(solicitud);
+        try {
+            console.log("Id de solicitud: ", solicitudId);
+            console.log("Id de solicitud: ", solicitud);
 
-        const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/actualizarSolicitud/${solicitud._id}`, {
-            method:'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(solicitud),
-        });
-        console.log("Respuesta de actualizacio:", respuesta.status)
+
+            const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/actualizarSolicitud/${solicitudId}`, {
+                method:'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(solicitud),
+            });
+            console.log("Respuesta de actualizacio:", respuesta.status)
+            
+            navigate('/pagos');
+            
+        } catch (error) {
+            alert("Se producjo un error, intentelo  nuevamente");
+        }
         
-        navigate('/pagos');
     };
 
         //FUNCION PARA REGRESAR A LA PAGINA ANTERIOR
