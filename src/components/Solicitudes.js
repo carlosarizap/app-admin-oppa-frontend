@@ -1,319 +1,318 @@
-import React, { useEffect, useState} from "react";
-import { useParams, useNavigate } from 'react-router-dom';
-import { URL_BACKEND } from "../App";
+import React, { useEffect, useState } from 'react';
+import {useNavigate } from 'react-router-dom';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
-import moment from 'moment';
-import ListaProveedor from './ListaProveedor';
-import Modal from 'react-modal'; // Importa Modal desde 'react-modal'
+import esLocale from 'date-fns/locale/es';
+import '../index.css';
 
-Modal.setAppElement('#root');
+import { URL_BACKEND } from "../App";
 
-const SolicitudDetalle = () => {
-    const { id: solicitudId } = useParams();
-    const navigate = useNavigate();
-    const [cliente, setCliente] = useState({});
-    const [apoderado, setApoderado] = useState({});
-    const [solicitud, setSolicitud] = useState({});
-    const [proveedor, setProveedor] = useState({});
-    const [servcio, setServicio] = useState({});
-    const [direccion, setDireccion] = useState({});
-    const [direccionCompleta, setDireccionCompleta] = useState("");
-    const [horaFinal, setHoraFinal] = useState("");
+const Solicitudes = () => {
+  const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEstado, setSelectedEstado] = useState('Todos');
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [clienteMap, setClienteMap] = useState(new Map());
+  const [solicutudesCalendar, setSolicitudesCalendar] = useState([]);
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [hayProveedor, setHayProveedor] = useState(false);
-    const [actualizarSolicitud, setActualizarSolicitud] = useState(false);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const fetchData = async () => {
+    try {
+        const hoy = new Date();
+        setSelectedDate(hoy);
+        //Obtner todas las solicitudes en estado "Buscando OPPA"
+        const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
+         // Filtrar las solicitudes según la fecha
+        
+        const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
+            const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
+            return (
+            fechaSolicitud.getDate() === hoy.getDate() &&
+            fechaSolicitud.getMonth() === hoy.getMonth() &&
+            fechaSolicitud.getFullYear() === hoy.getFullYear()
+            );
+        });
+
+        setSolicitudesCalendar(solicitudesBuscandoOppaResponse);
     
+        setSolicitudes(solicitudesFiltradas);
+        const mapaClientes = new Map();
+        //Recorrer la lista de solicitudesFiltradas
+        for (const solicitud of solicitudesFiltradas) {
 
-    useEffect(() => {
-        fetchData();
-
-    }, [])
-
-    const fetchData = async() => {
-        try {
-            //responde de solicitud
-            const solicitudResponse = await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${solicitudId}`).then((response) => response.json());
-            setSolicitud(solicitudResponse);
-            const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitudResponse.IdCliente}`).then((response) => response.json());
-            setCliente(clienteResponse);
-            const apoderadoRespuesta = await fetch(`${URL_BACKEND}/api/apoderados/${solicitudResponse.IdApoderado}`).then((response) => response.json());
-            setApoderado(apoderadoRespuesta);
-            const servicioResponse = await fetch(`${URL_BACKEND}/api/servicios/${solicitudResponse.IdServicio}`).then((response) => response.json());
-            setServicio(servicioResponse);
-            const direccionResponse = await fetch(`${URL_BACKEND}/api/direccion/${solicitudResponse.IdDireccion}`).then((response) => response.json());
-            setDireccion(direccionResponse);
-
-            if(solicitudResponse.IdProveedor != null){
-                const proveedorResponse = await  fetch(`${URL_BACKEND}/api/proveedores/${solicitudResponse.IdProveedor}`).then((response) => response.json());
-                setProveedor(proveedorResponse);
-                setHayProveedor(true);
-            }
-
-            const construirDireccion = direccionResponse.Comuna + ", " + direccionResponse.Calle;
-            setDireccionCompleta(construirDireccion);
-
-
-            // Calcular la hora final sumando la hora inicial y la duración del servicio
-            let hora = moment(solicitudResponse.Hora, 'HH:mm:ss');
+          if(solicitud.IdCliente !== null && solicitud.IdApoderado !== null){
+            const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
+            const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
             
-            const horaFinalCalculada = hora.add(servicioResponse.DuracionMinutos, 'minutes').format('HH:mm');
+            if(clienteResponse != null && apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
             
-            setHoraFinal(horaFinalCalculada);
 
-            setIsLoading(false); // Cambiar el estado a falso cuando todos los datos estén cargados
-
-
-
-        } catch (error) {
-            setIsLoading(false); // Manejar el estado de carga en caso de error
-        }
-       
-
-    };
-
-    const agregarProveedor = () => {
-        setModalIsOpen(true);
-    };
-
-    const closeModal = () => {
-        setModalIsOpen(false);
-    };
-
-    const handleSelectProveedor = async (proveedorSeleccionado) => {
-        // Lógica para manejar el proveedor seleccionado
-        const proveedorServcioResponse = await fetch(`${URL_BACKEND}/api/proveedorServicio/${proveedorSeleccionado._id}`).then((response) => response.json());
-        const estadoProfesionResponse = await fetch(`${URL_BACKEND}/api/profesionEstados/proveedor/${proveedorSeleccionado._id}`).then((response) => response.json());
-    
-        if (proveedorServcioResponse != null && estadoProfesionResponse != null) {
-
-            const servicioFiltrado = proveedorServcioResponse.find(servicio => servicio.IdServicio === solicitud.IdServicio);
-            const profesionFiltrada = estadoProfesionResponse.find(profesion => profesion._id === servicioFiltrado?.IdProfesion);
-    
-            if (servicioFiltrado != null && profesionFiltrada != null) {
-
-                setProveedor(proveedorSeleccionado);
-    
-                setSolicitud((prevSolicitud) => ({
-                    ...prevSolicitud,
-                    IdProveedor: proveedorSeleccionado._id,
-                    Estado: "Agendado",
-                    IdProfesionEstado: servicioFiltrado.IdProfesion,
-                    RatingServicio: profesionFiltrada.Rating
-                }));
-    
-                setHayProveedor(true);
-                setActualizarSolicitud(true);
-            } else {
-                await alert("No se encontró el servicio o la profesión correspondiente en las respuestas.");
-                
+          }
+          else if(solicitud.IdCliente !== null && solicitud.IdApoderado  == null){
+            const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
+            if(clienteResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
             }
-        }
-        // Puedes hacer lo que necesites con el proveedor seleccionado aquí
-    };
-    
-
-    const actualizarSolicitudNuevoProveedor = async() => {
-        console.log(solicitud);
-        const fecha = new Date();
-        const meses = ['ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.', 'jul.', 'ago.', 'sep.', 'oct.', 'nov.', 'dic.'];
-        const nombreMes = meses[fecha.getMonth()];
-        const dia = String(fecha.getDay() + 1);
-
-        const TituloSolicitud = `${solicitud.NombreServicio} ${dia} ${nombreMes} ${solicitud.Hora} hrs.`;
-
-
-
-        let comprobarSolicitud =  await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${solicitudId}`).then((response) => response.json());
-        if(comprobarSolicitud.IdProveedor === null){
-
-            await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
-                method:'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({...solicitud}),
-            });
-
-            comprobarSolicitud = await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${solicitudId}`).then((response) => response.json());
-
-            if(comprobarSolicitud.IdProveedor === solicitud.IdProveedor){
-                //Se crea mensajeria
-                const listaLeido = [];
-
-                let leidoProveedor = {
-                    IdProveedor: solicitud.IdProveedor,
-                    IdCliente: null,
-                    IdApoderado: null,
-                    HaLeido: true
-
-                }
-
-                listaLeido.push(leidoProveedor);
-
-                if(solicitud.IdCliente != null){
-
-                    let leidoCliente = {
-                        IdProveedor : null,
-                        IdCliente : solicitud?.IdCliente,
-                        IdApoderado: null,
-                        HaLeido : true
-                    }
-
-                    listaLeido.push(leidoCliente);
-
-                    cliente.Apoderados.forEach(IdApoderado => {
-                        console.log(IdApoderado)
-                        let leido = {
-                            IdProveedor: null,
-                            IdCliente: null,
-                            IdApoderado: IdApoderado,
-                            HaLeido: true
-
-                        }
-
-                        listaLeido.push(leido);
-                    });
-                    
-
-
-                }
-                else{
-                    let leidoApoderado = {
-                        IdProveedor : null,
-                        IdCliente : null,
-                        IdApoderado : solicitud.IdApoderado,
-                        HaLeido : true
-                    }
-
-                    listaLeido.push(leidoApoderado);
-                        
-                }
-
-                const conversacion = {
-                    Nombre: TituloSolicitud,
-                    NombreUltimaPersona: "",
-                    FotoConversacion: solicitud.FotoServicio,
-                    UltimoMensaje: "",
-                    HoraUltimoMensaje: new Date(),
-                    NoLeido: false,
-                    IdSolicitud: solicitud._id,
-                    IdCliente: solicitud.IdCliente,
-                    IdApoderado: solicitud.IdApoderado,
-                    IdProveedor: solicitud.IdProveedor,
-                    ArrayLeidos : listaLeido
-
-                };
-
-                console.log(conversacion);
-                
-                await fetch(`${URL_BACKEND}/api/conversacion/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body:JSON.stringify(conversacion),
-                });
-
-                //refrescar la pagina...
-                //navigate(`/solicitudes`);
-                window.location.reload();
-
-
-
+          }
+          else if(solicitud.IdCliente == null && solicitud.IdApoderado  !== null){
+            const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
+            
+            if(apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
             }
-            else{
-                alert("No se pudo modificar el proveedor.");
-            }
+          }
+        };
+
+        setClienteMap(mapaClientes);
 
 
-        }else{
-            alert("Ya tomaron la solicitud.");
-        }
-
+    }catch(error){
+        
     }
+  }
+  const handleDateChange = async (date) => {
+    setSelectedDate(date);
+    const solicitudesBuscandoOppaResponse = await fetch(`${URL_BACKEND}/api/solicitud/solicitudTotal`).then((response) => response.json());
+    setSolicitudesCalendar(solicitudesBuscandoOppaResponse);
+         // Filtrar las solicitudes según la fecha
+        const solicitudesFiltradas = solicitudesBuscandoOppaResponse.filter((solicitud) => {
+            const fechaSolicitud = new Date(solicitud.Fecha); // Asegúrate de adaptar la propiedad de fecha según la estructura de tu objeto solicitud
+            return (
+            fechaSolicitud.getDate() === date.getDate() &&
+            fechaSolicitud.getMonth() === date.getMonth() &&
+            fechaSolicitud.getFullYear() === date.getFullYear()
+            );
+        });
+    
+        setSolicitudes(solicitudesFiltradas);
 
+        const mapaClientes = new Map();
+        //Recorrer la lista de solicitudesFiltradas
+        for (const solicitud of solicitudesFiltradas) {
 
-    const volverPaginaAnterior = () => {
-        navigate(`/solicitudes`);
-    }
+          if(solicitud.IdCliente !== null && solicitud.IdApoderado !== null){
+            const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
+            const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
+            
+            if(clienteResponse != null && apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
+            
 
-    return(
-        <div>
-            <h1>Detalle de solicitud</h1>
-            {isLoading ? ( // Mostrar un indicador de carga mientras los datos se están cargando
-                <div>Cargando...</div>
-            ) : (
-            <div className="container mt-5">
-                <div className="card">
-                    <div className="card-body">
-                    <h5 className="card-title">Información de la Actividad</h5>
-                    <ul className="list-group list-group-flush">
-                    <li className="list-group-item"><strong>Nombre del servicio:</strong> {solicitud?.NombreServicio}</li>
-                            <li className="list-group-item"><strong>Cliente:</strong> {cliente?.Nombre} {cliente?.Apellidos}</li>
-                            <li className="list-group-item"><strong>Telefono del cliente:</strong>{cliente?.Numero_Telefonico}</li>
-                            <li className="list-group-item"><strong>Apoderado:</strong> {apoderado?.Nombre} {apoderado?.Apellidos}</li>
-                            <li className="list-group-item"><strong>Telefono del apoderado:</strong>{apoderado?.Numero_Telefonico}</li>
-                            <li className="list-group-item"><strong>Fecha:</strong> {solicitud?.Fecha ? format(new Date(solicitud.Fecha), 'dd-MM-yyyy') : 'Fecha inválida'}</li>
-                            <li className="list-group-item"><strong>Hora:</strong> {moment(solicitud?.Hora, 'HH:mm:ss').format('HH:mm')} - {horaFinal} </li>
-                            <li className="list-group-item"><strong>Dirección:</strong> {direccionCompleta}</li>
-                            <li className="list-group-item"><strong>Detalle:</strong> {direccion?.Detalle}</li>
-                    </ul>
-                    <h5 className="card-title">Información del Proveedor</h5>
-                    {hayProveedor ? (
-                        <div>
-                            {actualizarSolicitud ? (
-                            <div>
-                                <ul className="list-group list-group-flush">
-                                    <li className="list-group-item"><strong>Nombre:</strong> {proveedor?.Nombre} {proveedor?.Apellidos}</li>
-                                    <li className="list-group-item"><strong>Rut:</strong> {proveedor?.Rut} </li>
-                                    <li className="list-group-item"><strong>Telefono: </strong> +56 {proveedor?.Telefono}</li>
-                                </ul>
-                                <div>
-                                    <button  className="btn btn-info accordion-flush" onClick={actualizarSolicitudNuevoProveedor}>Actualizar Solicitud</button>
-                                </div>
-                                <button  className="btn btn-warning accordion-flush" onClick={agregarProveedor}>Cambiar Proveedor</button>
-                                <ListaProveedor
-                                isOpen={modalIsOpen}
-                                closeModal={closeModal}
-                                handleSelectProveedor={handleSelectProveedor} // Pasar la función aquí
-                            />   
-                            </div>
-                            ) : (
-                            <dvi>
-                                <ul className="list-group list-group-flush">
-                                    <li className="list-group-item"><strong>Nombre:</strong> {proveedor?.Nombre} {proveedor?.Apellidos}</li>
-                                    <li className="list-group-item"><strong>Rut:</strong> {proveedor?.Rut} </li>
-                                    <li className="list-group-item"><strong>Telefono: </strong> +56 {proveedor?.Telefono}</li>
-                                </ul>
-                                
-                            </dvi>
-                            )}
-                            
+          }
+          else if(solicitud.IdCliente !== null && solicitud.IdApoderado  == null){
+            const clienteResponse = await fetch(`${URL_BACKEND}/api/clientes/${solicitud.IdCliente}`).then((response) => response.json());
+            if(clienteResponse != null){
+              mapaClientes.set(solicitud.IdCliente, { id: solicitud._id, Rut: clienteResponse.Rut });
+            }
+          }
+          else if(solicitud.IdCliente == null && solicitud.IdApoderado  !== null){
+            const apoderadoResponse = await fetch(`${URL_BACKEND}/api/apoderados/${solicitud.IdApoderado}`).then((response) => response.json());
+            
+            if(apoderadoResponse != null){
+              mapaClientes.set(solicitud.IdApoderado, { id: solicitud._id, Rut: apoderadoResponse.Rut });
+            }
+          }
+        };
 
-                        </div>
-                        
-                    ): (
-                        <div>
-                            <label>No hay proveedor</label>
-                                <button  className="btn btn-info accordion-flush" onClick={agregarProveedor}>+ Agregar Proveedor</button>
-                                <ListaProveedor
-                                isOpen={modalIsOpen}
-                                closeModal={closeModal}
-                                handleSelectProveedor={handleSelectProveedor} // Pasar la función aquí
-                            />   
-                        </div>
-                        
+        setClienteMap(mapaClientes);
+
+  };
+
+   //Obtiene los valores del input
+   const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Función para manejar el cambio en el valor del combobox
+  const handleEstadoChange = (e) => {
+      setSelectedEstado(e.target.value); // Actualiza el estado seleccionado
+  };
+
+ //metodo de filtrados
+ let solicitudFiltrada = []
+ if(!searchQuery && selectedEstado  === "Todos"){
+   solicitudFiltrada = solicitudes;
+ }
+ else if(searchQuery && selectedEstado === "Todos"){
+  
+   solicitudFiltrada = solicitudes.filter((solicitud) => {
+     const clienteRut = solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente)
+       ? clienteMap.get(solicitud.IdCliente)?.Rut.toLowerCase()
+       : '';
+     const apoderadoRut = solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado)
+       ? clienteMap.get(solicitud.IdApoderado)?.Rut.toLowerCase()
+       : '';
+     
+     // Filtrar si el rut del cliente o del apoderado coincide con la búsqueda
+     return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
+   });
+
+ }
+ else if(!searchQuery && selectedEstado  !== "Todos"){
+   solicitudFiltrada = solicitudes.filter((solicitud) => solicitud.Estado === selectedEstado);
+   
+ }
+ else if(searchQuery && selectedEstado !== "Todos"){
+
+   
+   let Filtrada = solicitudes.filter((solicitud) => solicitud.Estado === selectedEstado);
+
+   solicitudFiltrada = Filtrada.filter((solicitud) => {
+     const clienteRut = solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente)
+       ? clienteMap.get(solicitud.IdCliente)?.Rut.toLowerCase()
+       : '';
+     const apoderadoRut = solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado)
+       ? clienteMap.get(solicitud.IdApoderado)?.Rut.toLowerCase()
+       : '';
+     
+     // Filtrar si el rut del cliente o del apoderado coincide con la búsqueda
+     return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
+   });
+ }
+
+ //REDIRECCION A LA PAGINA PROVEEDORFORMS.
+  const handleRowClickSolicitudDetalle = (SolicitudId) => {
+    navigate(`/solicitudes/${SolicitudId}`);
+  };
+
+  return (
+    <div>
+      <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
+      <div>
+      <div className="d-flex justify-content-between align-items-center">
+          <h1>Servicios Solicitados</h1>
+          <div className="input-buttons-container d-flex align-items-center">
+            <div className='d-flex'>
+              <div style={{ marginRight: '15px' }}>
+                <select className="form-control" value={selectedEstado} onChange={handleEstadoChange}>
+                  <option value="Todos">Todos</option>
+                  <option value="Buscando OPPA">Buscando OPPA</option>
+                  <option value="Agendado">Agendado</option>
+                  <option value="Aprobado">Aprobado</option>
+                  <option value="Finalizado">Finalizado</option>
+              </select>
+              </div>
+              <div className="form-group has-search">
+                <span className="fa fa-search form-control-feedback"></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Buscar por RUT..."
+                  />
+                  {searchQuery && (
+                    <button
+                      className="btn btn-clear"
+                      onClick={() => setSearchQuery('')}
+                      >
+                      <span className="fa fa-times"></span>
+                    </button>
                     )}
-                    </div>
-                    <button className="btn btn-primary mt-3" onClick={volverPaginaAnterior}>Volver a solicitudes</button>
-                  
-                </div>
+              </div>
             </div>
-            )}
+          </div>
+      </div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ marginRight: '20px' }}>
+        <Calendar
+        value={selectedDate}
+        onChange={handleDateChange}
+        tileContent={({ date }) => {
+          // Verificar si el día actual coincide con alguna fecha específica
+          const esFechaEspecifica = solicutudesCalendar.some((solicitud) =>{
+            const fechaSolicitud = new Date(solicitud.Fecha);
+            return(
+              fechaSolicitud.getDate() === date.getDate() &&
+              fechaSolicitud.getMonth() === date.getMonth() &&
+              fechaSolicitud.getFullYear() === date.getFullYear() &&
+              solicitud.Estado === "Buscando OPPA"
+            );
+          });
+
+          // Si el día actual coincide con una fecha específica, mostrar un punto rojo
+          if (esFechaEspecifica) {
+            return <div style={{ backgroundColor: 'red', borderRadius: '50%', width: '5px', height: '5px'}} />;
+          }
+
+          // Si no es una fecha específica, devolver null para no mostrar nada
+          return null;
+        }}
+      />
+
         </div>
-    );
+          <div className="tabla-container">
+            <table className='tabla'>
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th>Rut Cliente</th>
+                  <th>Rut Apoderado</th>
+                  <th>Region</th>
+                  <th>Comuna</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Estado</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                  {solicitudFiltrada.map((solicitud) => (
+                      <tr key={solicitud._id} onDoubleClick={() => handleRowClickSolicitudDetalle(solicitud._id)}>
+                          <td>{solicitud.NombreServicio}</td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente) ? (clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A') : 'N/A'}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {solicitud.IdApoderado !== null && clienteMap.has(solicitud.IdApoderado) ? (clienteMap.get(solicitud.IdApoderado)?.Rut || 'N/A') : 'N/A'}
+                          </td>
+
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {solicitud.Region}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {solicitud.Comuna}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {format(new Date(solicitud.Fecha), 'yyyy-MM-dd', { locale: esLocale })}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {solicitud.Hora.substring(0, 5)}
+                          </td>
+                          <td style={{
+                              maxWidth: '200px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              color: solicitud.Estado === 'Buscando OPPA' ? 'orange' :
+                                    solicitud.Estado === 'Agendado' ? 'green' :
+                                    solicitud.Estado === 'Aprobado' ? 'aquamarine' :
+                                    solicitud.Estado === 'Finalizado' ? 'blue' : 'black'
+                            }}>
+                              {solicitud.Estado}
+                      </td>
+                                    
+                      </tr>
+                  ))}
+                  </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+  </div>
+
+    
+  );
 };
 
-export default  SolicitudDetalle;
+export default Solicitudes;
