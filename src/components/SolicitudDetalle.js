@@ -68,6 +68,7 @@ const SolicitudDetalle = () => {
 
         } catch (error) {
             setIsLoading(false); // Manejar el estado de carga en caso de error
+            console.log(error)
         }
        
 
