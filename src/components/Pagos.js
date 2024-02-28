@@ -54,7 +54,7 @@ const Pagos = () => {
         }
         else if(selectedEstado === "NoPagado"){
         // Filtrar las solicitudes finalizadas según el rango de fechas
-        console.log(false)
+        
         solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.filter((solicitud) => {
           const fecha = new Date(solicitud.Fecha);
           const fechaSolicitud = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
