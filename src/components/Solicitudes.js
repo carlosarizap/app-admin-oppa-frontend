@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import {useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
@@ -8,6 +9,7 @@ import '../index.css';
 import { URL_BACKEND } from "../App";
 
 const Solicitudes = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEstado, setSelectedEstado] = useState('Todos');
@@ -178,6 +180,12 @@ const Solicitudes = () => {
      return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
    });
  }
+
+  //REDIRECCION A LA PAGINA PROVEEDORFORMS.
+  const handleRowClickSolicitudDetalle = (SolicitudId) => {
+    navigate(`/solicitudes/${SolicitudId}`);
+  };
+
   return (
     <div>
       <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
@@ -262,7 +270,7 @@ const Solicitudes = () => {
               </thead>
               <tbody>
                   {solicitudFiltrada.map((solicitud) => (
-                      <tr key={solicitud._id} >
+                      <tr key={solicitud._id} onDoubleClick={() => handleRowClickSolicitudDetalle(solicitud._id)}>
                           <td>{solicitud.NombreServicio}</td>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente) ? (clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A') : 'N/A'}
