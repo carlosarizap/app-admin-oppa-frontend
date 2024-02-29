@@ -124,49 +124,49 @@ const Pagos = () => {
         <div>
           <div>
           <div className="input-buttons-container" style={{ marginBottom: '15px' }}>
-          <div className="input-group">
-              <div>
-                <label>Desde:</label>
-                <DatePicker
-                  selected={startDate}
-                  onChange={handleStartDateChange}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  locale={es} // Establecer el idioma español
-                  dateFormat="dd/MM/yyyy" // Formato de fecha: día, mes y año        
-                />
-              </div>
-              
-              <div className="input-group">
-                <label>Hasta:</label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={handleEndDateChange}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate}
-                  locale={es} // Establecer el idioma español
-                  dateFormat="dd/MM/yyyy" // Formato de fecha: día, mes y año 
-                />
-              </div>
-            </div>
-          </div>
-          <div className="input-group">
-            <label>Estado:</label>
-            <div style={{ marginRight: '15px' }}>
-                <select className="form-control" value={selectedEstado} onChange={handleEstadoChange}>
-                  <option value="Todos">Todos</option>
-                  <option value="NoPagado">No Pagado</option>
-                  <option value="Pagado">Pagado</option>
-              </select>
-          </div>
-          </div>
-          
-          
-          <div className="form-group has-search">
-                <span className="fa fa-search form-control-feedback"></span>
+                <div className="input-group">
+                  <h6>Desde:</h6>
+                  <DatePicker
+                    className="form-control"
+                    selected={startDate}
+                    onChange={handleStartDateChange}
+                    selectsStart
+                    startDate={startDate}
+                    endDate={endDate}
+                    locale={es}
+                    dateFormat="dd/MM/yyyy"
+                  />
+                </div>
+                <div className="input-group">
+                  <h6>Hasta:</h6>
+                  <DatePicker
+                    className="form-control"
+                    selected={endDate}
+                    onChange={handleEndDateChange}
+                    selectsEnd
+                    startDate={startDate}
+                    endDate={endDate}
+                    minDate={startDate}
+                    locale={es}
+                    dateFormat="dd/MM/yyyy"
+                  />
+                </div>
+                <div className="input-group">
+                  <h6>Estado:</h6>
+                  <select className="form-control" value={selectedEstado} onChange={handleEstadoChange}>
+                    <option value="Todos">Todos</option>
+                    <option value="NoPagado">No Pagado</option>
+                    <option value="Pagado">Pagado</option>
+                  </select>
+                </div>
+                <div className="form-group has-search">
+                  <span className="fa fa-search form-control-feedback"></span>
+
+
+
+
+
+
                   <input
                     type="text"
                     className="form-control"
@@ -175,14 +175,15 @@ const Pagos = () => {
                     placeholder="Buscar por RUT..."
                   />
                   {searchQuery && (
-                    <button
-                      className="btn btn-clear"
-                      onClick={() => setSearchQuery('')}
-                      >
+                    <button className="btn btn-clear" onClick={() => setSearchQuery('')}>
+
+
+
                       <span className="fa fa-times"></span>
                     </button>
-                    )}
-          </div>
+                  )}
+                </div>
+              </div>
             <div className="tabla-container">
               <table className='tabla'>
                 <thead>
