@@ -33,6 +33,7 @@ const Login = ({ setIsLoggedIn }) => {
       if (response.ok) {
         // Login successful
         const data = await response.json();
+        console.log(data)
         localStorage.setItem('token', data.token); // Store token in localStorage
         setIsLoggedIn(true);
         navigate('/solicitudes');
