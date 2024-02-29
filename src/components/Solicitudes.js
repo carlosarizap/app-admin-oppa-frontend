@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import {useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format } from 'date-fns';
@@ -8,6 +9,7 @@ import '../index.css';
 import { URL_BACKEND } from "../App";
 
 const Solicitudes = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEstado, setSelectedEstado] = useState('Todos');
@@ -69,8 +71,7 @@ const Solicitudes = () => {
           }
         };
 
-        setClienteMap(mapaClientes)
-        console.log(solicitudesBuscandoOppaResponse)
+        setClienteMap(mapaClientes);
 
 
     }catch(error){
@@ -178,11 +179,17 @@ const Solicitudes = () => {
      return clienteRut.includes(searchQuery.toLowerCase()) || apoderadoRut.includes(searchQuery.toLowerCase());
    });
  }
+
+ //REDIRECCION A LA PAGINA PROVEEDORFORMS.
+  const handleRowClickSolicitudDetalle = (SolicitudId) => {
+    navigate(`/solicitudes/${SolicitudId}`);
+  };
+
   return (
     <div>
       <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' />
       <div>
-        <div className="d-flex justify-content-between align-items-center">
+      <div className="d-flex justify-content-between align-items-center">
           <h1>Servicios Solicitados</h1>
           <div className="input-buttons-container d-flex align-items-center">
             <div className='d-flex'>
@@ -213,36 +220,35 @@ const Solicitudes = () => {
                     </button>
                     )}
               </div>
-              
             </div>
           </div>
       </div>
       <div style={{ display: 'flex' }}>
         <div style={{ marginRight: '20px' }}>
         <Calendar
-  value={selectedDate}
-  onChange={handleDateChange}
-  tileContent={({ date }) => {
-    // Verificar si el día actual coincide con alguna fecha específica
-    const esFechaEspecifica = solicutudesCalendar.some((solicitud) =>{
-      const fechaSolicitud = new Date(solicitud.Fecha);
-      return(
-        fechaSolicitud.getDate() === date.getDate() &&
-        fechaSolicitud.getMonth() === date.getMonth() &&
-        fechaSolicitud.getFullYear() === date.getFullYear() &&
-        solicitud.Estado === "Buscando OPPA"
-      );
-    });
+        value={selectedDate}
+        onChange={handleDateChange}
+        tileContent={({ date }) => {
+          // Verificar si el día actual coincide con alguna fecha específica
+          const esFechaEspecifica = solicutudesCalendar.some((solicitud) =>{
+            const fechaSolicitud = new Date(solicitud.Fecha);
+            return(
+              fechaSolicitud.getDate() === date.getDate() &&
+              fechaSolicitud.getMonth() === date.getMonth() &&
+              fechaSolicitud.getFullYear() === date.getFullYear() &&
+              solicitud.Estado === "Buscando OPPA"
+            );
+          });
 
-    // Si el día actual coincide con una fecha específica, mostrar un punto rojo
-    if (esFechaEspecifica) {
-      return <div style={{ backgroundColor: 'red', borderRadius: '50%', width: '5px', height: '5px'}} />;
-    }
+          // Si el día actual coincide con una fecha específica, mostrar un punto rojo
+          if (esFechaEspecifica) {
+            return <div style={{ backgroundColor: 'red', borderRadius: '50%', width: '5px', height: '5px'}} />;
+          }
 
-    // Si no es una fecha específica, devolver null para no mostrar nada
-    return null;
-  }}
-/>
+          // Si no es una fecha específica, devolver null para no mostrar nada
+          return null;
+        }}
+      />
 
         </div>
           <div className="tabla-container">
@@ -262,7 +268,7 @@ const Solicitudes = () => {
               </thead>
               <tbody>
                   {solicitudFiltrada.map((solicitud) => (
-                      <tr key={solicitud._id} >
+                      <tr key={solicitud._id} onDoubleClick={() => handleRowClickSolicitudDetalle(solicitud._id)}>
                           <td>{solicitud.NombreServicio}</td>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {solicitud.IdCliente !== null && clienteMap.has(solicitud.IdCliente) ? (clienteMap.get(solicitud.IdCliente)?.Rut || 'N/A') : 'N/A'}
