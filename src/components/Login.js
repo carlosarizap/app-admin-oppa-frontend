@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../index.css'; 
 import { URL_BACKEND } from "../App";
-import Cookies from 'js-cookie';
 
 const Login = ({ setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -33,9 +32,8 @@ const Login = ({ setIsLoggedIn }) => {
       if (response.ok) {
         // Login successful
         const data = await response.json();
-        console.log(data)
         localStorage.setItem('token', data.token); // Store token in localStorage
-        setIsLoggedIn(true);
+        setIsLoggedIn(true); // Update isLoggedIn state
         navigate('/solicitudes');
       } else {
         // Login failed

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
@@ -24,23 +24,34 @@ import Solicitudes from './components/Solicitudes';
 import Pagos from './components/Pagos';
 import PagosForm from './components/PagosForm';
 import Login from './components/Login';
-import SolicitudDetalle from './components/SolicitudDetalle'
+import SolicitudDetalle from './components/SolicitudDetalle';
+import Inicio from './components/Inicio';
 
 export const URL_BACKEND = process.env.REACT_APP_SERVER_URL;
 
 const ProtectedRoute = ({ children, isLoggedIn }) => {
-  return isLoggedIn ? children : <Navigate to="/" replace />;
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+};
+
+const ProtectedLoginRoute = ({ children, isLoggedIn }) => {
+  console.log("a")
+  return isLoggedIn ? <Navigate to="/" replace /> : children;
 };
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  useEffect(() => {
+    // Check if token exists in localStorage
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
   return (
     <Router>
-      <Navigation />
+      <Navigation isLoggedIn={isLoggedIn}/>
       <div className="container p-4">
         <Routes>
-
           <Route path="/dashboard" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Dashboard /></ProtectedRoute>} />
           <Route path="/servicios" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Servicios /></ProtectedRoute>} />
           <Route path="/servicios/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><ServicioForm /></ProtectedRoute>} />
@@ -62,8 +73,8 @@ const App = () => {
           <Route path="/pagos" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Pagos /></ProtectedRoute>} />
           <Route path="/pagos/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><PagosForm /></ProtectedRoute>} />
           <Route path="/solicitudes/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><SolicitudDetalle /></ProtectedRoute>} />
-          <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-
+          <Route path="/" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Inicio /></ProtectedRoute>}/>
+          <Route path="/login" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><Login setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
         </Routes>
       </div>
     </Router>
