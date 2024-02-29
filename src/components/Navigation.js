@@ -34,9 +34,6 @@ export default class Navigation extends Component {
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">
-              <li className="nav-item active">
-                <Link className='nav-link fw-bold' to="/">Inicio</Link>
-              </li>
               <li className="nav-item active fw-bold">
                 <Link className='nav-link' to="/solicitudes">Solicitudes</Link>
               </li>
@@ -69,7 +66,7 @@ export default class Navigation extends Component {
               </li>
               {isLoggedIn ? (
         <li className="nav-item active fw-bold">
-          <button className='nav-link btn btn-link' onClick={this.handleLogout}>Cerrar Sesión</button>
+          <Link className='nav-link btn btn-link' onClick={this.handleLogout}>Cerrar Sesión</Link>
         </li>
       ) : (
         <li className="nav-item active fw-bold">
