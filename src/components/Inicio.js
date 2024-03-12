@@ -4,7 +4,7 @@ const Inicio = () => {
   return (
     <div>
       <h2>Bienvenido a la página de inicio</h2>
-      <p>Esta es una página de ejemplo para tu aplicación.</p>
+      <p></p>
     </div>
   );
 };

@@ -10,6 +10,7 @@ const ClienteForm = () => {
     const navigate = useNavigate();
     const { id: clienteId } = useParams();
     const [cliente, setCliente] = useState({});
+    const [monedero, setMonedero] = useState({});
     const [apoderados, setApoderados] = useState([]);
     const [selectedApoderados, setSelectedApoderados] = useState([]);
     const currentDate = new Date();
@@ -23,8 +24,11 @@ const ClienteForm = () => {
         const fetchCliente = async () => {
             try {
                 const response = await fetch(`${URL_BACKEND}/api/clientes/${clienteId}`);
+                const responseMonedero = await fetch(`${URL_BACKEND}/api/monedero/cliente/${clienteId}`);
                 const data = await response.json();
+                const dataMonedero = await responseMonedero.json();
                 setCliente(data);
+                setMonedero(dataMonedero);
                 setSelectedApoderados(data.Apoderados || []);
             } catch (error) {
                 console.error('Error fetching cliente:', error);
@@ -58,7 +62,7 @@ const ClienteForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         // Validation checks
         if (
             !cliente.Rut ||
@@ -70,11 +74,9 @@ const ClienteForm = () => {
             console.log('Rellena todos los campos.');
             return;
         }
-
-       // const selectedApoderados = selectedApoderados.map((option) => option.value);
-
+    
         try {
-            // Your existing code for submitting the form
+            // Actualiza el cliente
             await fetch(`${URL_BACKEND}/api/clientes/${clienteId}`, {
                 method: 'PUT',
                 headers: {
@@ -85,7 +87,19 @@ const ClienteForm = () => {
                     Apoderados: selectedApoderados,
                 }),
             });
-
+    
+            // Actualiza el saldo del monedero
+            await fetch(`${URL_BACKEND}/api/monedero/${monedero._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    Saldo: monedero.Saldo,
+                    // Otros campos del monedero, si es necesario
+                }),
+            });
+    
             navigate('/clientes');
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -127,6 +141,17 @@ const ClienteForm = () => {
         }));
     };
 
+    const handleMonederoInputChange = (e) => {
+        const { value } = e.target;
+        setMonedero((prevMonedero) => ({
+            ...prevMonedero,
+            Saldo: value,
+        }));
+    };
+    
+
+
+
     const handleApoderadosChange = (selectedOptions) => {
         const selectedApoderados = selectedOptions ? selectedOptions.map((option) => option.value) : [];
         setSelectedApoderados(selectedApoderados);
@@ -140,7 +165,9 @@ const ClienteForm = () => {
         <div className="container mt-5">
             <h1 className="text-center">Editar Cliente</h1>
             <form className="d-flex flex-column col-6 mx-auto" onSubmit={handleSubmit}>
-                <h5 className="mb-3 text-start">
+            <div className='row'>
+
+            <h5 className="col mb-3 text-start">
                     RUT:
                     <input
                         className="form-control"
@@ -152,6 +179,21 @@ const ClienteForm = () => {
                         required
                     />
                 </h5>
+                <h5 className="col mb-3 text-start">
+                    Saldo en monedero:
+                    <input
+                        className="form-control"
+                        type="number"
+                        name="Saldo"
+                        id="saldoInput"
+                        value={monedero?.Saldo || ''}
+                        onChange={handleMonederoInputChange}
+                        required
+                    />
+
+                </h5>
+            </div>
+                
                 <div className='row'>
                     <h5 className="col mb-3 text-start">
                         Nombre:
