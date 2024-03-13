@@ -11,6 +11,7 @@ const ApoderadoForm = () => {
     const { id: apoderadoId } = useParams();
     const [apoderado, setApoderado] = useState({});
     const [clientes, setClientes] = useState([]);
+    const [monedero, setMonedero] = useState({});
     const [selectedClientes, setSelectedClientes] = useState([]);
     const currentDate = new Date();
     const options = [
@@ -23,8 +24,11 @@ const ApoderadoForm = () => {
         const fetchApoderado = async () => {
             try {
                 const response = await fetch(`${URL_BACKEND}/api/apoderados/${apoderadoId}`);
+                const responseMonedero = await fetch(`${URL_BACKEND}/api/monedero/apoderado/${apoderadoId}`);
                 const data = await response.json();
+                const dataMonedero = await responseMonedero.json();
                 setApoderado(data);
+                setMonedero(dataMonedero);
                 setSelectedClientes(data.Clientes || []);
             } catch (error) {
                 console.error('Error fetching apoderado:', error);
@@ -85,6 +89,18 @@ const ApoderadoForm = () => {
                 }),
             });
 
+            // Actualiza el saldo del monedero
+            await fetch(`${URL_BACKEND}/api/monedero/${monedero._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    Saldo: monedero.Saldo,
+                    // Otros campos del monedero, si es necesario
+                }),
+            });
+            
             navigate('/clientes');
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -137,11 +153,21 @@ const ApoderadoForm = () => {
     };
 
 
+    const handleMonederoInputChange = (e) => {
+        const { value } = e.target;
+        setMonedero((prevMonedero) => ({
+            ...prevMonedero,
+            Saldo: value,
+        }));
+    };
+
     return (
         <div className="container mt-5">
             <h1 className="text-center">Editar Apoderado</h1>
             <form className="d-flex flex-column col-6 mx-auto" onSubmit={handleSubmit}>
-                <h5 className="mb-3 text-start">
+            <div className='row'>
+
+                <h5 className="col mb-3 text-start">
                     RUT:
                     <input
                         className="form-control"
@@ -151,8 +177,22 @@ const ApoderadoForm = () => {
                         value={apoderado?.Rut || ''}
                         onChange={handleInputChange}
                         required
-                    />
+                        />
                 </h5>
+                <h5 className="col mb-3 text-start">
+                    Saldo en monedero:
+                    <input
+                        className="form-control"
+                        type="number"
+                        name="Saldo"
+                        id="saldoInput"
+                        value={monedero?.Saldo || ''}
+                        onChange={handleMonederoInputChange}
+                        required
+                        />
+
+                </h5>
+                        </div>
                 <div className='row'>
                     <h5 className="col mb-3 text-start">
                         Nombre:
