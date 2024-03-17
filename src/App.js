@@ -26,6 +26,7 @@ import PagosForm from './components/PagosForm';
 import Login from './components/Login';
 import SolicitudDetalle from './components/SolicitudDetalle';
 import Inicio from './components/Inicio';
+import ForgotPassword from './components/ForgotPassword';
 
 export const URL_BACKEND = process.env.REACT_APP_SERVER_URL;
 
@@ -34,7 +35,6 @@ const ProtectedRoute = ({ children, isLoggedIn }) => {
 };
 
 const ProtectedLoginRoute = ({ children, isLoggedIn }) => {
-  console.log("a")
   return isLoggedIn ? <Navigate to="/" replace /> : children;
 };
 
@@ -100,7 +100,9 @@ const App = () => {
           <Route path="/pagos/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><PagosForm /></ProtectedRoute>} />
           <Route path="/solicitudes/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><SolicitudDetalle /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Inicio /></ProtectedRoute>}/>
+
           <Route path="/login" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><Login setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
+          <Route path="/cambiar-contrasena" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><ForgotPassword setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
         </Routes>
       </div>
     </Router>

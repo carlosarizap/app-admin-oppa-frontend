@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../index.css'; 
 import { URL_BACKEND } from "../App";
 
@@ -47,7 +47,7 @@ const Login = ({ setIsLoggedIn }) => {
   };
 
   return (
-    <div className="main">
+    <div className="main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', maxHeight: '100vh', overflowY: 'auto' }}>
       <h2>Iniciar Sesión</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
@@ -72,7 +72,13 @@ const Login = ({ setIsLoggedIn }) => {
             required
           />
         </div>
+        <div style={{ textAlign: 'right' }}>
+          <Link to="/cambiar-contrasena">Olvidé mi contraseña...</Link>
+        </div>
+        <div style={{ textAlign: 'right' }}>
         <button type="submit" className="btn btn-primary">Iniciar Sesión</button>
+
+        </div>
       </form>
     </div>  
   );
