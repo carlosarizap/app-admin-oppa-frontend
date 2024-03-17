@@ -40,11 +40,37 @@ const ProtectedLoginRoute = ({ children, isLoggedIn }) => {
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(null);
 
   useEffect(() => {
-    // Check if token exists in localStorage
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
+
+    // Set up activity timer
+    const activityTimer = setTimeout(() => {
+      // Automatically log out after 1 minute of inactivity
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+    }, 43200000); 
+
+    // Listen for activity to reset timer
+    const handleActivity = () => {
+      clearTimeout(activityTimer);
+      const newTimer = setTimeout(() => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+      }, 43200000); 
+      setTimeoutId(newTimer);
+    };
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+
+    return () => {
+      clearTimeout(activityTimer);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
   }, []);
 
   return (
