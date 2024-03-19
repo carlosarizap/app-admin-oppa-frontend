@@ -54,6 +54,9 @@ const Navigation = ({ isLoggedIn }) => { // Receive isLoggedIn as a prop
                   <Link className='nav-link' to="/parametros">Parámetros</Link>
                 </li>
                 <li className="nav-item active fw-bold">
+                  <Link className='nav-link' to="/administradores">Administradores</Link>
+                </li>
+                <li className="nav-item active fw-bold">
                   <Link className='nav-link' to="/ayuda">Ayuda</Link>
                 </li>
                 <li className="nav-item active fw-bold">

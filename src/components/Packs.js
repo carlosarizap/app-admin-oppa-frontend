@@ -148,7 +148,7 @@ const Packs = () => {
               DESCARGAR EXCEL
             </button>
             <Link to="/packs/crear" className="btn btn-primary">
-              CREAR SERVICIO
+              CREAR PACK
             </Link>
           </div>
         </div>

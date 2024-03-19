@@ -27,6 +27,8 @@ import Login from './components/Login';
 import SolicitudDetalle from './components/SolicitudDetalle';
 import Inicio from './components/Inicio';
 import ForgotPassword from './components/ForgotPassword';
+import Administradores from './components/Administradores';
+import AdministradorForm from './components/AdministradorForm';
 
 export const URL_BACKEND = process.env.REACT_APP_SERVER_URL;
 
@@ -100,6 +102,8 @@ const App = () => {
           <Route path="/pagos/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><PagosForm /></ProtectedRoute>} />
           <Route path="/solicitudes/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><SolicitudDetalle /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Inicio /></ProtectedRoute>}/>
+          <Route path="/administradores" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Administradores /></ProtectedRoute>}/>
+          <Route path="/administradores/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><AdministradorForm /></ProtectedRoute>}/>
 
           <Route path="/login" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><Login setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
           <Route path="/cambiar-contrasena" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><ForgotPassword setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
