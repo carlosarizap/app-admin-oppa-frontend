@@ -92,7 +92,7 @@ const ForgotPassword = () => {
       setError('');
       try {
         // Make HTTP request to update password
-        const response = await axios.put(`${URL_BACKEND}/api/administrador/update-password`, {
+        const response = await axios.put(`${URL_BACKEND}/api/administrador/update-password/:email`, {
           email: email,
           newPassword: newPassword,
         });
