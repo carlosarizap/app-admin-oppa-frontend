@@ -43,11 +43,12 @@ const ProtectedLoginRoute = ({ children, isLoggedIn }) => {
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [timeoutId, setTimeoutId] = useState(null);
+  const [loggedInUserEmail, setLoggedInUserEmail] = useState('');
+  const [loggedInUser, setLoggedInUser] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-
     // Set up activity timer
     const activityTimer = setTimeout(() => {
       // Automatically log out after 1 minute of inactivity
@@ -105,8 +106,8 @@ const App = () => {
           <Route path="/administradores" element={<ProtectedRoute isLoggedIn={isLoggedIn}><Administradores /></ProtectedRoute>}/>
           <Route path="/administradores/:id" element={<ProtectedRoute isLoggedIn={isLoggedIn}><AdministradorForm /></ProtectedRoute>}/>
 
-          <Route path="/login" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><Login setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
-          <Route path="/cambiar-contrasena" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><ForgotPassword setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
+          <Route path="/login" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn}><Login setIsLoggedIn={setIsLoggedIn} setLoggedInUser={setLoggedInUser} /></ProtectedLoginRoute>} />
+          <Route path="/cambiar-contrasena" element={<ProtectedLoginRoute isLoggedIn={isLoggedIn} loggedInUserEmail={loggedInUserEmail}><ForgotPassword setIsLoggedIn={setIsLoggedIn} /></ProtectedLoginRoute>} />
         </Routes>
       </div>
     </Router>

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import '../index.css'; 
 import { URL_BACKEND } from "../App";
 
-const Login = ({ setIsLoggedIn }) => {
+const Login = ({ setIsLoggedIn, setLoggedInUser }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,6 +34,8 @@ const Login = ({ setIsLoggedIn }) => {
         const data = await response.json();
         localStorage.setItem('token', data.token); // Store token in localStorage
         setIsLoggedIn(true); // Update isLoggedIn state
+        setLoggedInUser(email);
+        localStorage.setItem('email', email); 
         navigate('/solicitudes');
       } else {
         // Login failed
