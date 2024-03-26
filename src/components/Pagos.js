@@ -31,6 +31,10 @@ const Pagos = () => {
   
         const solicitudesFinalizadasResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesFinalizados`).then((response) => response.json());
         
+        const serviciosResponse  = await fetch(`${URL_BACKEND}/api/servicios/`).then((response) => response.json());
+
+        solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.map(solicitud => aplicarDescuento(solicitud, serviciosResponse));
+
         if(selectedEstado === "Todos"){
           // Filtrar las solicitudes finalizadas según el rango de fechas
           solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.filter((solicitud) => {
@@ -77,6 +81,26 @@ const Pagos = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
       }
+    };
+
+    const aplicarDescuento = (solicitud, serviciosResponse) => {
+      
+      const servicio = serviciosResponse.find(servicio => servicio._id === solicitud.IdServicio);
+
+      console.log(solicitud.Precio)
+      if (servicio && servicio.Comision) {
+        const descuento = solicitud.Precio * servicio.Comision;
+        let resultado = solicitud.Precio - descuento;
+        solicitud.Precio = resultado;
+        
+      } else {
+        // Si no se encuentra el servicio o no tiene comisión, el precio con descuento es igual al precio original
+  
+      }
+
+      console.log(solicitud.Precio)
+      return solicitud;
+      
     };
     
     const handleStartDateChange = date => {
