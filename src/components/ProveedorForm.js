@@ -513,7 +513,8 @@ const ProveedorForm = () => {
                         setProveedor((prevProveedor) => ({ ...prevProveedor, Revisado: checked }));
                         setProveedor((prevProveedor) => ({
                             ...prevProveedor,
-                            Estado: checked
+                            Estado: checked,
+                            IdDispositivo: null
                         }));
             
                         setProfesionEstado((prevProfesionEstado) => {
@@ -594,6 +595,7 @@ const ProveedorForm = () => {
                         const updatedProfesionEstado = profesionEstado.map((profesion) => ({
                             ...profesion,
                             Activa: checked,
+                            IdDispositivo: null
                         }));
                         setProfesionEstado(updatedProfesionEstado);
         
