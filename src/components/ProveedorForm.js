@@ -245,7 +245,8 @@ const ProveedorForm = () => {
                             
                             serviciosElimnar.map(async (servicio) => {
                                 const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
-                                solicitud.IdProfesionEstado === servicio.IdProfesion
+                                solicitud.IdProfesionEstado === servicio.IdProfesion &&
+                                new Date(solicitud.FechaInicio) > new Date(servicio.FechaInicio)
                                 );
 
         
@@ -343,8 +344,13 @@ const ProveedorForm = () => {
             });
             //Liberar solicitudes
             const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
-            if(solicitudesProveedorResponse.length > 0){
-                solicitudesProveedorResponse.map(async(solicitud) => {
+
+            const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
+                        new Date(solicitud.Fecha) > currentDate
+            );
+
+            if(solicitudFiltrado.length > 0){
+                solicitudFiltrado.map(async(solicitud) => {
 
                     //Obtenemos conversacion de la solicitud
                     const conversacion =  await fetch(`${URL_BACKEND}/api/conversacion/ConversacionSolicitud/${solicitud._id}`).then((response) => response.json());
@@ -381,9 +387,6 @@ const ProveedorForm = () => {
                 })
             }
 
-            //Eliminar Conversacion
-
-            //Eliminar mensajes
             navigate(`/proveedores`);
             console.log('Proveedor deleted successfully:', data);
         } catch (error) {
