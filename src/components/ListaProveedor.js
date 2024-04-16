@@ -19,7 +19,10 @@ const ListaProveedorModal = ({ isOpen, closeModal, handleSelectProveedor }) => {
         try{
 
             const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores`).then((response) => response.json());;
-            setProveedores(proveedorResponse);
+
+            const listaProveedorFiltrada = proveedorResponse.filter(proveedor => proveedor.Estado === true);
+
+            setProveedores(listaProveedorFiltrada);
             setIsLoading(false);
         }
         catch(error){
