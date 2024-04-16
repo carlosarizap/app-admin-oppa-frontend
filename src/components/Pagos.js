@@ -134,9 +134,9 @@ const Pagos = () => {
     });
   }
   
-  const handleCheckboxChange = async (checked, soli) => {
+  const handleCheckboxChange = async (checked, id) => {
     try{
-      const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${soli._id}`, {
+      const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${id}`, {
         method:'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ const Pagos = () => {
 
     setSolicitudesFinalizadas((prevSolicitud) =>
     prevSolicitud.map((solicitud) =>
-    solicitud._id === soli._id ? { ...solicitud, PagadoPorOppa: checked } : solicitud
+    solicitud._id === id ? { ...solicitud, PagadoPorOppa: checked } : solicitud
                 )
             );
 
@@ -256,7 +256,7 @@ const Pagos = () => {
                               <input
                                 type="checkbox"
                                 checked={solicitud.PagadoPorOppa}
-                                onChange={event => handleCheckboxChange(event, solicitud)}
+                                onChange={event => handleCheckboxChange(event, solicitud._id)}
                               />
                           </td>
                                     
