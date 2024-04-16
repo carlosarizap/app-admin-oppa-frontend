@@ -12,6 +12,7 @@ const ProveedorForm = () => {
     const { id: proveedorId } = useParams();
     const [proveedor, setProveedor] = useState({});
     const [bancos, setBancos] = useState([]);
+    
     //---------------------------------------
     const [profesiones, setProfesiones] = useState([]);
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
@@ -138,8 +139,10 @@ const ProveedorForm = () => {
                     const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
                     
                     serviciosPausados.map(async (servicio) => {
+
                         const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
-                        solicitud.IdProfesionEstado === servicio.IdProfesion
+                        solicitud.IdProfesionEstado === servicio.IdProfesion &&
+                        new Date(solicitud.Fecha) > currentDate
                         );
 
                         //Recorrer la lista solicitudFiltrado
