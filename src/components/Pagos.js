@@ -136,7 +136,8 @@ const Pagos = () => {
   
   const handleCheckboxChange = async (checked, id) => {
     try{
-      const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${id}`, {
+      console.log(id)
+      await fetch(`${URL_BACKEND}/api/solicitud/${id}`, {
         method:'PUT',
         headers: {
             'Content-Type': 'application/json',
