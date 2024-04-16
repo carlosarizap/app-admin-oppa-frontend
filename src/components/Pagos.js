@@ -144,6 +144,12 @@ const Pagos = () => {
         body: JSON.stringify({PagadoPorOppa: checked}),
     });
 
+    setSolicitudesFinalizadas((prevSolicitud) =>
+    prevSolicitud.map((solicitud) =>
+    solicitud._id === soli._id ? { ...solicitud, PagadoPorOppa: checked } : solicitud
+                )
+            );
+
 
     }catch(error){
       console.log(error)
@@ -247,9 +253,6 @@ const Pagos = () => {
                           </td>
 
                           <td>
-                              {solicitud.PagadoPorOppa? (
-                                <span style={{color: 'green'}}>Pagado</span>
-                              ) : (<span style={{color: 'red'}}>No Pagado</span>)}
                               <input
                                 type="checkbox"
                                 checked={solicitud.PagadoPorOppa}
