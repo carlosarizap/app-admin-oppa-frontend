@@ -87,7 +87,6 @@ const Pagos = () => {
       
       const servicio = serviciosResponse.find(servicio => servicio._id === solicitud.IdServicio);
 
-      console.log(solicitud.Precio)
       if (servicio && servicio.Comision) {
         const descuento = solicitud.Precio * servicio.Comision;
         let resultado = solicitud.Precio - descuento;
@@ -135,6 +134,23 @@ const Pagos = () => {
     });
   }
   
+  const handleCheckboxChange = async (checked, soli) => {
+    try{
+      const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${soli._id}`, {
+        method:'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({PagadoPorOppa: checked}),
+    });
+
+
+    }catch(error){
+      console.log(error)
+
+    }
+
+  }
 
   //REDIRECCION A LA PAGINA PROVEEDORFORMS.
   const handleRowClickSolicitudPago = (SolicitudId) => {
@@ -186,11 +202,6 @@ const Pagos = () => {
                 <div className="form-group has-search">
                   <span className="fa fa-search form-control-feedback"></span>
 
-
-
-
-
-
                   <input
                     type="text"
                     className="form-control"
@@ -239,6 +250,11 @@ const Pagos = () => {
                               {solicitud.PagadoPorOppa? (
                                 <span style={{color: 'green'}}>Pagado</span>
                               ) : (<span style={{color: 'red'}}>No Pagado</span>)}
+                              <input
+                                type="checkbox"
+                                checked={solicitud.PagadoPorOppa}
+                                onChange={event => handleCheckboxChange(event, solicitud)}
+                              />
                           </td>
                                     
                       </tr>

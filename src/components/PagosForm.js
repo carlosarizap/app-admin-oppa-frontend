@@ -49,7 +49,6 @@ const PagosForm = () =>{
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            console.log("Id de solicitud: ", solicitudId);
 
 
             const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
@@ -59,7 +58,6 @@ const PagosForm = () =>{
                 },
                 body: JSON.stringify({...solicitud}),
             });
-            console.log("Respuesta de actualizacio:", respuesta.status)
             
             navigate('/pagos');
             
