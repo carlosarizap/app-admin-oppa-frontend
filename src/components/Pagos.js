@@ -13,12 +13,12 @@ const Pagos = () => {
   const navigate = useNavigate();
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    let [solicitudesFinalizdas, setSolicitudesFinalizadas] = useState([]);
-    const [proveedorMap, setProveedorMap] = useState(new Map());
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(new Date());
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedEstado, setSelectedEstado] = useState("NoPagado");
+  let [solicitudesFinalizdas, setSolicitudesFinalizadas] = useState([]);
+  const [proveedorMap, setProveedorMap] = useState(new Map());
+  const [startDate, setStartDate] = useState(firstDayOfMonth);
+  const [endDate, setEndDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEstado, setSelectedEstado] = useState("NoPagado");
 
     useEffect(() => {
       fetchData();
@@ -97,7 +97,6 @@ const Pagos = () => {
   
       }
 
-      console.log(solicitud.Precio)
       return solicitud;
       
     };
@@ -136,24 +135,25 @@ const Pagos = () => {
   
   const handleCheckboxChange = async (checked, id) => {
     try{
-      console.log(id)
+
       await fetch(`${URL_BACKEND}/api/solicitud/${id}`, {
         method:'PUT',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({PagadoPorOppa: checked}),
-    });
+      });
 
-    setSolicitudesFinalizadas((prevSolicitud) =>
-    prevSolicitud.map((solicitud) =>
-    solicitud._id === id ? { ...solicitud, PagadoPorOppa: checked } : solicitud
-                )
-            );
+      setSolicitudesFinalizadas((prevSolicitud) =>
+      prevSolicitud.map((solicitud) =>
+      solicitud._id === id ? { ...solicitud, PagadoPorOppa: checked } : solicitud));
+
+      alert("Pago actualizado");
 
 
     }catch(error){
       console.log(error)
+      alert("No se pudo actualizar el pago, intentlo nuevamente.");
 
     }
 
@@ -257,7 +257,7 @@ const Pagos = () => {
                               <input
                                 type="checkbox"
                                 checked={solicitud.PagadoPorOppa}
-                                onChange={event => handleCheckboxChange(event, solicitud._id)}
+                                onChange={(e) => handleCheckboxChange(e.target.checked, solicitud._id)}
                               />
                           </td>
                                     
