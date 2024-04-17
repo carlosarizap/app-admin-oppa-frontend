@@ -148,12 +148,12 @@ const Pagos = () => {
       prevSolicitud.map((solicitud) =>
       solicitud._id === id ? { ...solicitud, PagadoPorOppa: checked } : solicitud));
 
-      alert("Pago actualizado");
+      alert("Pago actualizado", "ok");
 
 
     }catch(error){
       console.log(error)
-      alert("No se pudo actualizar el pago, intentlo nuevamente.");
+      alert("No se pudo actualizar el pago, intentlo nuevamente.", "ok");
 
     }
 
