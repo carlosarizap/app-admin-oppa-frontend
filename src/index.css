@@ -345,3 +345,11 @@ input[name="subscriptorFilter32"]:hover ~ label[for="estadoFilter31"] {
 }
 
 
+.text-area{
+  height: 200px;
+  width: 300px;
+}
+
+.form-parametros input{
+  width: 300px;
+}

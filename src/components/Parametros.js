@@ -444,20 +444,20 @@ const Parametros = () => {
 
     const handleUpdateTiemposSolicitud = async (e) => {
         e.preventDefault();
-    
+
         if (tiempo.TiempoMinimo >= tiempo.TiempoMaximo) {
             alert('El tiempo mínimo debe ser menor que el tiempo máximo');
             fetchTiemposSolicitud();
             return;
         }
-    
+
         // Ensure TiempoSeguirBuscando is 60 or less than TiempoAnadido
         if (tiempo.TiempoSeguirBuscando + 60 >= tiempo.TiempoAnadido) {
             alert('El Tiempo de Buscando OPPA debe ser 60 o menos que el Tiempo Anadido');
             fetchTiemposSolicitud();
             return;
         }
-    
+
         try {
             const response = await fetch(`${URL_BACKEND}/api/tiempo/${tiempo._id}`, {
                 method: 'PUT',
@@ -474,7 +474,7 @@ const Parametros = () => {
                 },
                 body: JSON.stringify(parametro),
             });
-    
+
             if (response.ok && responseTerminos.ok) {
                 alert('Parametros actualizados correctamente');
             } else {
@@ -485,13 +485,13 @@ const Parametros = () => {
             alert('Error al actualizar los Parametros ');
         }
     };
-    
+
 
 
     const handleChange = (e) => {
         const { id, value } = e.target;
         let parsedValue = parseInt(value, 10);
-    
+
         if (id === 'TiempoAnadido') {
             parsedValue = Math.min(Math.max(parsedValue, 0), 10000);
         } else if (id === 'TiempoMinimo') {
@@ -504,7 +504,7 @@ const Parametros = () => {
             parsedValue = Math.min(Math.max(parsedValue, 1), tiempo.TiempoAnadido - 60);
         }
 
-    
+
         if (parsedValue === 0) {
             parsedValue = '0';
         }
@@ -523,7 +523,7 @@ const Parametros = () => {
             [id]: value,
         }));
     };
-    
+
 
 
 
@@ -688,7 +688,7 @@ const Parametros = () => {
             <div className='col'>
                 <h3>Tiempos de Solicitud</h3>
                 <form onSubmit={handleUpdateTiemposSolicitud}>
-                    <div className="form-group">
+                    <div className="form-group form-parametros">
                         <label htmlFor="tiempoAnadido">Tiempo Anadido (minutos):</label>
                         <input
                             type="number"
@@ -730,24 +730,51 @@ const Parametros = () => {
                             onChange={handleChange}
                         />
                         <label htmlFor="linkTerminosCliente">Link Terminos y Condiciones Cliente:</label>
-                    <input
-                        type="text"
-                        id="LinkTerminosCliente"
-                        className="form-control"
-                        value={parametro?.LinkTerminosCliente || ''}
-                        onChange={handleLinkTerminosChange}
-                    />
+                        <input
+                            type="text"
+                            id="LinkTerminosCliente"
+                            className="form-control"
+                            value={parametro?.LinkTerminosCliente || ''}
+                            onChange={handleLinkTerminosChange}
+                        />
 
-                    <label htmlFor="linkTerminosProveedor">Link Terminos y Condiciones Proveedor:</label>
-                    <input
-                        type="text"
-                        id="LinkTerminosProveedor"
-                        className="form-control"
-                        value={parametro?.LinkTerminosProveedor || ''}
-                        onChange={handleLinkTerminosChange}
-                    />
+                        <label htmlFor="linkTerminosProveedor">Link Terminos y Condiciones Proveedor:</label>
+                        <input
+                            type="text"
+                            id="LinkTerminosProveedor"
+                            className="form-control"
+                            value={parametro?.LinkTerminosProveedor || ''}
+                            onChange={handleLinkTerminosChange}
+                        />
+                        <label htmlFor="precioSubscripcion">Precio Suscripción:</label>
+                        <input
+                            type="number"
+                            id="PrecioSubscripcion"
+                            className="form-control"
+                            value={parametro?.PrecioSubscripcion || ''}
+                            onChange={handleLinkTerminosChange}
+                        />
+
+                        <label htmlFor="paginaMasBeneficios">Link de Más Beneficios:</label>
+                        <input
+                            type="text"
+                            id="PaginaMasBeneficios"
+                            className="form-control"
+                            value={parametro?.PaginaMasBeneficios || ''}
+                            onChange={handleLinkTerminosChange}
+                        />
+
+                        <label htmlFor="textoPromocionalSubscripcion">Texto Promocional Suscripción:</label>
+                        <textarea
+                            type="text"
+                            id="TextoPromocionalSubscripcion"
+                            className="form-control text-area"
+                            value={parametro?.TextoPromocionalSubscripcion || ''}
+                            onChange={handleLinkTerminosChange}
+                        />
 
                     </div>
+
                     <div className="row justify-content-center">
                         <div className="col-6">
                             <button className='btn btn-primary' type="submit">GUARDAR</button>
@@ -757,12 +784,12 @@ const Parametros = () => {
                 </form>
             </div>
 
-            
+
 
 
 
         </div>
     );
-                            };
-                            
+};
+
 export default Parametros;
