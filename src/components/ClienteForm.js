@@ -13,6 +13,7 @@ const ClienteForm = () => {
     const [monedero, setMonedero] = useState({});
     const [apoderados, setApoderados] = useState([]);
     const [selectedApoderados, setSelectedApoderados] = useState([]);
+    const [subscripcion, setSubscripcion] = useState({});
     const currentDate = new Date();
     const options = [
         { value: 'Femenino', label: 'Femenino' },
@@ -35,8 +36,20 @@ const ClienteForm = () => {
             }
         };
 
+
+        const fetchSubscripcion = async () => {
+            try {
+                const response = await fetch(`${URL_BACKEND}/api/subscripcion/cliente/${clienteId}`);
+                const data = await response.json();
+                setSubscripcion(data);
+            } catch (error) {
+                console.error('Error fetching subscripcion:', error);
+            }
+        };
+
         if (clienteId) {
             fetchCliente();
+            fetchSubscripcion();
         }
     }, [clienteId]);
 
@@ -62,7 +75,7 @@ const ClienteForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         // Validation checks
         if (
             !cliente.Rut ||
@@ -74,7 +87,7 @@ const ClienteForm = () => {
             console.log('Rellena todos los campos.');
             return;
         }
-    
+
         try {
             // Actualiza el cliente
             await fetch(`${URL_BACKEND}/api/clientes/${clienteId}`, {
@@ -87,7 +100,7 @@ const ClienteForm = () => {
                     Apoderados: selectedApoderados,
                 }),
             });
-    
+
             // Actualiza el saldo del monedero
             await fetch(`${URL_BACKEND}/api/monedero/${monedero._id}`, {
                 method: 'PUT',
@@ -99,7 +112,7 @@ const ClienteForm = () => {
                     // Otros campos del monedero, si es necesario
                 }),
             });
-    
+
             navigate('/clientes');
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -148,7 +161,7 @@ const ClienteForm = () => {
             Saldo: value,
         }));
     };
-    
+
 
 
 
@@ -157,6 +170,90 @@ const ClienteForm = () => {
         setSelectedApoderados(selectedApoderados);
     };
 
+    const handleSubscriptionSwitch = async (checked) => {
+        console.log(checked);
+        console.log(subscripcion);
+
+        // Caso 1: La suscripción no existe y se presiona activar
+        if (subscripcion?.error && checked) {
+            try {
+                const newSubscription = {
+                    _id: `${clienteId}-subscription`, // or use a more unique ID generation method
+                    FechaHora: new Date(),
+                    UltimoPago: new Date(),
+                    ProximoPago: new Date(new Date().setFullYear(new Date().getFullYear() + 100)),
+                    Desactivar: false,
+                    Activa: true,
+                    IdCliente: clienteId,
+                    IdApoderado: null,
+                    Rut: cliente.Rut,
+                    TbkUser: cliente.TbkUser || "", // Assuming this is fetched with cliente data
+                };
+
+                const response = await fetch(`${URL_BACKEND}/api/subscripcion`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newSubscription),
+                });
+
+                const data = await response.json();
+                setSubscripcion(data); // Actualizar el estado local con la nueva suscripción
+            } catch (error) {
+                console.error('Error creating subscription:', error);
+            }
+        }
+        // Caso 2: La suscripción existe y se presiona activar
+        else if (subscripcion && checked) {
+            try {
+                const updatedSubscription = {
+                    ...subscripcion,
+                    FechaHora: new Date(),
+                    UltimoPago: new Date(),
+                    ProximoPago: new Date(new Date().setFullYear(new Date().getFullYear() + 100)),
+                    Desactivar: false,
+                    Activa: true,
+                };
+
+                const response = await fetch(`${URL_BACKEND}/api/subscripcion/${subscripcion._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedSubscription),
+                });
+
+                const data = await response.json();
+                setSubscripcion(data); // Actualizar el estado local con la suscripción actualizada
+            } catch (error) {
+                console.error('Error updating subscription:', error);
+            }
+        }
+        // Caso 3: Se presiona desactivar
+        else if (subscripcion && !checked) {
+            try {
+                const updatedSubscription = {
+                    ...subscripcion,
+                    Activa: false,
+                    Desactivar: false,
+                };
+
+                const response = await fetch(`${URL_BACKEND}/api/subscripcion/${subscripcion._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedSubscription),
+                });
+
+                const data = await response.json();
+                setSubscripcion(data); // Actualizar el estado local con la suscripción desactivada
+            } catch (error) {
+                console.error('Error updating subscription:', error);
+            }
+        }
+    };
 
 
 
@@ -165,35 +262,35 @@ const ClienteForm = () => {
         <div className="container mt-5">
             <h1 className="text-center">Editar Cliente</h1>
             <form className="d-flex flex-column col-6 mx-auto" onSubmit={handleSubmit}>
-            <div className='row'>
+                <div className='row'>
 
-            <h5 className="col mb-3 text-start">
-                    RUT:
-                    <input
-                        className="form-control"
-                        type="text"
-                        name="Rut"
-                        id="rutInput"
-                        value={cliente?.Rut || ''}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </h5>
-                <h5 className="col mb-3 text-start">
-                    Saldo en monedero:
-                    <input
-                        className="form-control"
-                        type="number"
-                        name="Saldo"
-                        id="saldoInput"
-                        value={monedero?.Saldo || ''}
-                        onChange={handleMonederoInputChange}
-                        required
-                    />
+                    <h5 className="col mb-3 text-start">
+                        RUT:
+                        <input
+                            className="form-control"
+                            type="text"
+                            name="Rut"
+                            id="rutInput"
+                            value={cliente?.Rut || ''}
+                            onChange={handleInputChange}
+                            required
+                        />
+                    </h5>
+                    <h5 className="col mb-3 text-start">
+                        Saldo en monedero:
+                        <input
+                            className="form-control"
+                            type="number"
+                            name="Saldo"
+                            id="saldoInput"
+                            value={monedero?.Saldo || ''}
+                            onChange={handleMonederoInputChange}
+                            required
+                        />
 
-                </h5>
-            </div>
-                
+                    </h5>
+                </div>
+
                 <div className='row'>
                     <h5 className="col mb-3 text-start">
                         Nombre:
@@ -316,7 +413,7 @@ const ClienteForm = () => {
                                 className="form-control"
                                 type="text"
                                 name="EsSubscriptor"
-                                value={cliente.EsSubscriptor ? "Activa" : "Inactiva"}
+                                value={subscripcion?.Activa ? "Activa" : "Inactiva"}
                                 id="esSubscriptorInput"
                                 readOnly
                             />
@@ -325,8 +422,8 @@ const ClienteForm = () => {
                     <div className="col-sm-2 d-flex align-items-center">
                         <Switch
                             id="esSubscriptrSwitch"
-                            checked={cliente.EsSubscriptor || false}
-                            onChange={(checked) => setCliente((prevCliente) => ({ ...prevCliente, EsSubscriptor: checked }))}
+                            checked={subscripcion?.Activa || false}
+                            onChange={handleSubscriptionSwitch}
                         />
                     </div>
                 </div>

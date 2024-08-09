@@ -12,6 +12,7 @@ const Clientes = () => {
     const [apoderados, setApoderados] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [estadoFilter, setEstadoFilter] = useState('Despejar');
+    const [subscripciones, setSubscripciones] = useState([]);
 
 
     const handleSearchChange = (e) => {
@@ -55,13 +56,33 @@ const Clientes = () => {
             }
         };
 
+        const fetchSubscripciones = async () => {
+            try {
+                const response = await fetch(`${URL_BACKEND}/api/subscripcion`);
+                const data = await response.json();
+                setSubscripciones(data);
+            } catch (error) {
+                console.error('Error fetching subscripciones:', error);
+            }
+        };
+
         fetchClientes();
         fetchApoderados();
+        fetchSubscripciones();
     }, []);
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
     };
+
+    const getSubscriptorStatus = (id, type) => {
+        const subscripcion = subscripciones.find(sub => 
+            (type === 'cliente' && sub.IdCliente === id) || 
+            (type === 'apoderado' && sub.IdApoderado === id)
+        );
+        return subscripcion ? subscripcion.Activa : false;
+    };
+
     const handleEstadoChangeCliente = async (checked, clienteId) => {
         try {
 
@@ -365,8 +386,9 @@ const Clientes = () => {
                                             return apoderado ? (index ? `, ${apoderado.Rut}` : apoderado.Rut) : '';
                                         })}
                                     </td>
-                                    <td className={cliente.EsSubscriptor ? 'green-text' : 'red-text'}>
-                                        {cliente.EsSubscriptor ? 'Activa' : 'Inactiva'}
+                                    <td className={getSubscriptorStatus(cliente._id, 'cliente') ?  'green-text' : 'red-text'}>
+                                    {getSubscriptorStatus(cliente._id, 'cliente') ? 'Activa' : 'Desactivada'}
+                                     
                                     </td>
                                     <td><Switch
                                         checked={cliente.Activo}
@@ -555,8 +577,9 @@ const Clientes = () => {
                                     </td>
 
 
-                                    <td className={apoderado.EsSubscriptor ? 'green-text' : 'red-text'}>
-                                        {apoderado.EsSubscriptor ? 'Activa' : 'Inactiva'}
+                                    <td className={getSubscriptorStatus(apoderado._id, 'apoderado') ?  'green-text' : 'red-text'}>
+                                    {getSubscriptorStatus(apoderado._id, 'apoderado') ? 'Activa' : 'Desactivada'}
+                                     
                                     </td>
                                     <td><Switch
                                         checked={apoderado.Activo}
