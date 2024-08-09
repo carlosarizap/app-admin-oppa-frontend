@@ -219,7 +219,7 @@ const SolicitudDetalle = () => {
 
                 //refrescar la pagina...
                 //navigate(`/solicitudes`);
-                window.location.reload();
+                //window.location.reload();
 
 
 

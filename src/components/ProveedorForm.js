@@ -12,6 +12,7 @@ const ProveedorForm = () => {
     const { id: proveedorId } = useParams();
     const [proveedor, setProveedor] = useState({});
     const [bancos, setBancos] = useState([]);
+    
     //---------------------------------------
     const [profesiones, setProfesiones] = useState([]);
     const [selectedProfesiones, setSelectedProfesiones] = useState([]);
@@ -138,8 +139,10 @@ const ProveedorForm = () => {
                     const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
                     
                     serviciosPausados.map(async (servicio) => {
+
                         const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
-                        solicitud.IdProfesionEstado === servicio.IdProfesion
+                        solicitud.IdProfesionEstado === servicio.IdProfesion &&
+                        new Date(solicitud.Fecha) > currentDate
                         );
 
                         //Recorrer la lista solicitudFiltrado
@@ -167,7 +170,8 @@ const ProveedorForm = () => {
                                 
                             });
 
-                            await fetch(`${URL_BACKEND}/api/solicitud/actualizarSolicitud/${solicitud._id}`, {
+                            //probando esta consulta
+                            await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -241,7 +245,8 @@ const ProveedorForm = () => {
                             
                             serviciosElimnar.map(async (servicio) => {
                                 const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
-                                solicitud.IdProfesionEstado === servicio.IdProfesion
+                                solicitud.IdProfesionEstado === servicio.IdProfesion &&
+                                new Date(solicitud.FechaInicio) > new Date(servicio.FechaInicio)
                                 );
 
         
@@ -339,8 +344,13 @@ const ProveedorForm = () => {
             });
             //Liberar solicitudes
             const solicitudesProveedorResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesProveedor/${proveedorId}`).then((response) => response.json());
-            if(solicitudesProveedorResponse.length > 0){
-                solicitudesProveedorResponse.map(async(solicitud) => {
+
+            const solicitudFiltrado = solicitudesProveedorResponse.filter((solicitud) =>
+                        new Date(solicitud.Fecha) > currentDate
+            );
+
+            if(solicitudFiltrado.length > 0){
+                solicitudFiltrado.map(async(solicitud) => {
 
                     //Obtenemos conversacion de la solicitud
                     const conversacion =  await fetch(`${URL_BACKEND}/api/conversacion/ConversacionSolicitud/${solicitud._id}`).then((response) => response.json());
@@ -377,9 +387,6 @@ const ProveedorForm = () => {
                 })
             }
 
-            //Eliminar Conversacion
-
-            //Eliminar mensajes
             navigate(`/proveedores`);
             console.log('Proveedor deleted successfully:', data);
         } catch (error) {
@@ -513,7 +520,8 @@ const ProveedorForm = () => {
                         setProveedor((prevProveedor) => ({ ...prevProveedor, Revisado: checked }));
                         setProveedor((prevProveedor) => ({
                             ...prevProveedor,
-                            Estado: checked
+                            Estado: checked,
+                            IdDispositivo: null
                         }));
             
                         setProfesionEstado((prevProfesionEstado) => {
@@ -594,6 +602,7 @@ const ProveedorForm = () => {
                         const updatedProfesionEstado = profesionEstado.map((profesion) => ({
                             ...profesion,
                             Activa: checked,
+                            IdDispositivo: null
                         }));
                         setProfesionEstado(updatedProfesionEstado);
         

@@ -17,6 +17,19 @@ const PagosForm = () =>{
         try {
             const solicitudResponse = await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${solicitudId}`).then((response) =>response.json());
             const proveedorResponse = await fetch(`${URL_BACKEND}/api/proveedores/${solicitudResponse.IdProveedor}`).then((response) =>response.json());
+            const servicioResponse = await fetch(`${URL_BACKEND}/api/servicios/${solicitudResponse.IdServicio}`).then((response) =>response.json());
+
+            if (servicioResponse && servicioResponse.Comision) {
+                const descuento = solicitudResponse.Precio * servicioResponse.Comision;
+                const precioConDescuento = solicitudResponse.Precio - descuento;
+                
+                // Guardar el nuevo precio en la solicitud
+                solicitudResponse.Precio = Math.round(precioConDescuento);
+            } else {
+                // Si no se encuentra el servicio o no tiene comisión, no se aplica descuento
+                console.log("No se puede aplicar descuento a esta solicitud.");
+            }
+
             setSolicitud(solicitudResponse);
             setProveedor(proveedorResponse);
         } catch (error) {
@@ -36,7 +49,6 @@ const PagosForm = () =>{
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            console.log("Id de solicitud: ", solicitudId);
 
 
             const respuesta = await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
@@ -46,7 +58,6 @@ const PagosForm = () =>{
                 },
                 body: JSON.stringify({...solicitud}),
             });
-            console.log("Respuesta de actualizacio:", respuesta.status)
             
             navigate('/pagos');
             

@@ -13,12 +13,12 @@ const Pagos = () => {
   const navigate = useNavigate();
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    let [solicitudesFinalizdas, setSolicitudesFinalizadas] = useState([]);
-    const [proveedorMap, setProveedorMap] = useState(new Map());
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(new Date());
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedEstado, setSelectedEstado] = useState("NoPagado");
+  let [solicitudesFinalizdas, setSolicitudesFinalizadas] = useState([]);
+  const [proveedorMap, setProveedorMap] = useState(new Map());
+  const [startDate, setStartDate] = useState(firstDayOfMonth);
+  const [endDate, setEndDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEstado, setSelectedEstado] = useState("NoPagado");
 
     useEffect(() => {
       fetchData();
@@ -31,6 +31,10 @@ const Pagos = () => {
   
         const solicitudesFinalizadasResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesFinalizados`).then((response) => response.json());
         
+        const serviciosResponse  = await fetch(`${URL_BACKEND}/api/servicios/`).then((response) => response.json());
+
+        solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.map(solicitud => aplicarDescuento(solicitud, serviciosResponse));
+
         if(selectedEstado === "Todos"){
           // Filtrar las solicitudes finalizadas según el rango de fechas
           solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.filter((solicitud) => {
@@ -78,6 +82,24 @@ const Pagos = () => {
         console.error('Error fetching data:', error);
       }
     };
+
+    const aplicarDescuento = (solicitud, serviciosResponse) => {
+      
+      const servicio = serviciosResponse.find(servicio => servicio._id === solicitud.IdServicio);
+
+      if (servicio && servicio.Comision) {
+        const descuento = solicitud.Precio * servicio.Comision;
+        let resultado = solicitud.Precio - descuento;
+        solicitud.Precio = resultado;
+        
+      } else {
+        // Si no se encuentra el servicio o no tiene comisión, el precio con descuento es igual al precio original
+  
+      }
+
+      return solicitud;
+      
+    };
     
     const handleStartDateChange = date => {
       setStartDate(date);
@@ -111,6 +133,31 @@ const Pagos = () => {
     });
   }
   
+  const handleCheckboxChange = async (checked, id) => {
+    try{
+
+      await fetch(`${URL_BACKEND}/api/solicitud/${id}`, {
+        method:'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({PagadoPorOppa: checked}),
+      });
+
+      setSolicitudesFinalizadas((prevSolicitud) =>
+      prevSolicitud.map((solicitud) =>
+      solicitud._id === id ? { ...solicitud, PagadoPorOppa: checked } : solicitud));
+
+      alert("Pago actualizado", "ok");
+
+
+    }catch(error){
+      console.log(error)
+      alert("No se pudo actualizar el pago, intentlo nuevamente.", "ok");
+
+    }
+
+  }
 
   //REDIRECCION A LA PAGINA PROVEEDORFORMS.
   const handleRowClickSolicitudPago = (SolicitudId) => {
@@ -162,11 +209,6 @@ const Pagos = () => {
                 <div className="form-group has-search">
                   <span className="fa fa-search form-control-feedback"></span>
 
-
-
-
-
-
                   <input
                     type="text"
                     className="form-control"
@@ -212,9 +254,11 @@ const Pagos = () => {
                           </td>
 
                           <td>
-                              {solicitud.PagadoPorOppa? (
-                                <span style={{color: 'green'}}>Pagado</span>
-                              ) : (<span style={{color: 'red'}}>No Pagado</span>)}
+                              <input
+                                type="checkbox"
+                                checked={solicitud.PagadoPorOppa}
+                                onChange={(e) => handleCheckboxChange(e.target.checked, solicitud._id)}
+                              />
                           </td>
                                     
                       </tr>
