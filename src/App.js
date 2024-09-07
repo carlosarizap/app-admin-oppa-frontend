@@ -32,6 +32,8 @@ import AdministradorForm from './components/AdministradorForm';
 
 export const URL_BACKEND = process.env.REACT_APP_SERVER_URL;
 
+console.log(URL_BACKEND)
+
 const ProtectedRoute = ({ children, isLoggedIn }) => {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
 };

@@ -103,45 +103,66 @@ const ServicioForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!descuento) {
-      servicio.Descuento = 0;
-    }
-
-    if (!estado) {
-      servicio.Estado = false;
-    }
-
-    if (!tieneDescuento) {
-      servicio.TieneDescuento = false;
-    }
-
-    if (!nombre || !descripcion || !idCategoria || !foto || !precio || !comision) {
-      alert('Rellena todos los campos.');
-      return;
-    }
-
-    console.log(servicio)
-
+  
     try {
+      let imageUrl = foto; // Keep the existing image URL if no new image is selected
+  
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+  
+        const imageResponse = await fetch(`${URL_BACKEND}/api/upload`, { // Update to correct endpoint
+          method: 'POST',
+          body: formData,
+        });
+  
+        // Check if the response is OK (status code 200-299)
+        if (!imageResponse.ok) {
+          const errorData = await imageResponse.json();
+          throw new Error(errorData.message || 'Error uploading the image');
+        }
+  
+        const imageData = await imageResponse.json();
+        imageUrl = imageData.url; // Get the image URL from the response
+      }
+  
+      const updatedServicio = {
+        ...servicio,
+        Foto: imageUrl, // Save the image URL in the "Foto" field
+      };
+  
       const url = isCreating ? `${URL_BACKEND}/api/servicios` : `${URL_BACKEND}/api/servicios/${servicioId}`;
       const method = isCreating ? 'POST' : 'PUT';
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(servicio)
+        body: JSON.stringify(updatedServicio),
       });
+  
+      if (!response.ok) {
+        throw new Error('Error submitting form');
+      }
+  
       const data = await response.json();
-
-      // Do something with the response data, such as displaying a success message
       navigate(`/servicios`);
       console.log('Form submitted successfully:', data);
     } catch (error) {
       console.error('Error submitting form:', error);
+      alert(error.message); // Optionally, show an error message to the user
     }
   };
+  
+
+
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedFile(file); // Almacenar el archivo seleccionado
+  };
+
 
   const handleDelete = async () => {
 
@@ -223,12 +244,13 @@ const ServicioForm = () => {
           Imagen:
           <input
             className="form-control"
-            type="text"
+            type="file"
+            accept="image/*"
             name="Foto"
-            value={servicio?.Foto || ''}
-            onChange={handleInputChange}
+            onChange={handleFileChange}
           />
         </h5>
+
         <div className="row">
           <h5 className="col-sm-6 mb-3 text-start">
             Precio:
@@ -305,7 +327,7 @@ const ServicioForm = () => {
           </div>
         </div>
         <div className="row align-items-center">
-        <h5 className="col-sm-6 mb-3 text-start">
+          <h5 className="col-sm-6 mb-3 text-start">
             Duración (min.):
             <input
               className="form-control"
@@ -314,11 +336,11 @@ const ServicioForm = () => {
               value={servicio?.DuracionMinutos || ''}
               onChange={handleInputChange}
             />
-        </h5>
-          
+          </h5>
+
 
           <div className="col-sm-4 d-flex align-items-center">
-          <h5 className="mb-3 text-start">
+            <h5 className="mb-3 text-start">
               Fecha Desde:
               <DatePicker
                 className='form-control'
@@ -332,13 +354,13 @@ const ServicioForm = () => {
               />
 
             </h5>
-            
+
           </div>
 
         </div>
-              <div className='row'>
-              <div className="col-sm-6">
-            
+        <div className='row'>
+          <div className="col-sm-6">
+
 
             <h5 className="mb-3 text-start">
               Fecha Hasta:
@@ -355,10 +377,10 @@ const ServicioForm = () => {
 
             </h5>
           </div>
-              </div>
-        
+        </div>
 
-        
+
+
         <div className="row justify-content-center">
           <div className="col-6">
             {!isCreating && (
