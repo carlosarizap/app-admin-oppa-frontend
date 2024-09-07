@@ -7,21 +7,24 @@ import { URL_BACKEND } from "../App";
 const ServicioForm = () => {
   const navigate = useNavigate();
   const { id: servicioId } = useParams();
-  const [servicio, setServicio] = useState({});
+  const [servicio, setServicio] = useState({
+    Nombre: '',
+    Descripcion: '',
+    idCategoria: '',
+    Foto: '',
+    Precio: '',
+    Estado: false,
+    Comision: '',
+    Descuento: '',
+    TieneDescuento: false,
+  });
   const [categorias, setCategorias] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const isCreating = servicioId === 'crear'; // Define isCreating here
 
-  const nombre = servicio?.Nombre ?? '';
-  const descripcion = servicio?.Descripcion ?? '';
-  const idCategoria = servicio?.idCategoria ?? '';
-  const foto = servicio?.Foto ?? '';
-  const precio = servicio?.Precio ?? '';
-  const estado = servicio?.Estado || false;
-  const comision = servicio?.Comision ?? '';
-  const descuento = servicio?.Descuento ?? '';
-  const tieneDescuento = servicio?.TieneDescuento || false;
-
-  useEffect(() => {
-    const fetchServicio = async () => {
+  // Combined fetchData function to avoid useEffect missing dependency warning
+  const fetchData = async () => {
+    if (!isCreating) {
       try {
         const response = await fetch(`${URL_BACKEND}/api/servicios/${servicioId}`);
         const data = await response.json();
@@ -29,31 +32,20 @@ const ServicioForm = () => {
       } catch (error) {
         console.error('Error fetching servicio:', error);
       }
-    };
-
-    const fetchCategorias = async () => {
-      try {
-        const response = await fetch(`${URL_BACKEND}/api/categorias`);
-        const data = await response.json();
-        setCategorias(data);
-      } catch (error) {
-        console.error('Error fetching categorias:', error);
-      }
-    };
-
-    if (servicioId) {
-      fetchServicio();
     }
 
-    fetchCategorias();
-  }, [servicioId]);
+    try {
+      const response = await fetch(`${URL_BACKEND}/api/categorias`);
+      const data = await response.json();
+      setCategorias(data);
+    } catch (error) {
+      console.error('Error fetching categorias:', error);
+    }
+  };
 
-  const isCreating = servicioId === 'crear';
-  const headerText = isCreating ? 'Crear Servicio' : 'Modificar Servicio';
-
-  if (servicio === null && !isCreating) {
-    return <div>Loading...</div>;
-  }
+  useEffect(() => {
+    fetchData();
+  }, [servicioId]); // Add servicioId to the dependency array
 
   const handleInputChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -64,34 +56,9 @@ const ServicioForm = () => {
       inputValue = isNaN(parsedValue) || parsedValue < 0 ? '' : parsedValue;
     }
 
-
-    if (name === 'Descuento' || name === 'Comision') {
-      const parsedValue = parseFloat(inputValue);
-      if (isNaN(parsedValue) || parsedValue < 0 || parsedValue >= 1) {
-        inputValue = '';
-
-      } else {
-        inputValue = parsedValue;
-
-      }
+    if (type === 'checkbox') {
+      inputValue = checked;
     }
-
-    if (name === 'DuracionMinutos') {
-      const parsedValue = parseFloat(inputValue);
-      if (isNaN(parsedValue) || parsedValue < 0 || parsedValue >= 1000) {
-        inputValue = '';
-
-      } else {
-        inputValue = parsedValue;
-
-      }
-    }
-
-    if (inputValue === 0) {
-      inputValue = '0';
-    }
-
-    inputValue = type === 'checkbox' ? checked : inputValue;
 
     setServicio((prevServicio) => ({
       ...prevServicio,
@@ -99,39 +66,42 @@ const ServicioForm = () => {
     }));
   };
 
-
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]); // Store the selected file
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
-      let imageUrl = foto; // Keep the existing image URL if no new image is selected
-  
+      let imageUrl = servicio.Foto;
+
       if (selectedFile) {
         const formData = new FormData();
         formData.append('image', selectedFile);
-  
-        const imageResponse = await fetch(`${URL_BACKEND}/api/upload`, { // Update to correct endpoint
+
+        const imageResponse = await fetch(`${URL_BACKEND}/api/upload`, {
           method: 'POST',
           body: formData,
         });
-  
-        // Check if the response is OK (status code 200-299)
+
         if (!imageResponse.ok) {
-          const errorData = await imageResponse.json();
-          throw new Error(errorData.message || 'Error uploading the image');
+          throw new Error('Error uploading the image');
         }
-  
+
         const imageData = await imageResponse.json();
-        imageUrl = imageData.url; // Get the image URL from the response
+        imageUrl = imageData.url;
       }
-  
+
       const updatedServicio = {
         ...servicio,
-        Foto: imageUrl, // Save the image URL in the "Foto" field
+        Foto: imageUrl,
       };
-  
-      const url = isCreating ? `${URL_BACKEND}/api/servicios` : `${URL_BACKEND}/api/servicios/${servicioId}`;
+
+      const url = isCreating
+        ? `${URL_BACKEND}/api/servicios`
+        : `${URL_BACKEND}/api/servicios/${servicioId}`;
+
       const method = isCreating ? 'POST' : 'PUT';
       const response = await fetch(url, {
         method,
@@ -140,48 +110,33 @@ const ServicioForm = () => {
         },
         body: JSON.stringify(updatedServicio),
       });
-  
+
       if (!response.ok) {
         throw new Error('Error submitting form');
       }
-  
-      const data = await response.json();
+
       navigate(`/servicios`);
-      console.log('Form submitted successfully:', data);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert(error.message); // Optionally, show an error message to the user
+      alert(error.message);
     }
   };
-  
-
-
-  const [selectedFile, setSelectedFile] = useState(null);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setSelectedFile(file); // Almacenar el archivo seleccionado
-  };
-
 
   const handleDelete = async () => {
-
     const confirmed = window.confirm('Estas seguro de que quieres borrar este Servicio?');
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
-      const url = `${URL_BACKEND}/api/servicios/${servicioId}`;
-      const response = await fetch(url, {
+      const response = await fetch(`${URL_BACKEND}/api/servicios/${servicioId}`, {
         method: 'DELETE',
       });
-      const data = await response.json();
-      navigate(`/servicios`);
-      console.log('Servicio deleted successfully:', data);
 
+      if (!response.ok) throw new Error('Error deleting servicio');
+      
+      navigate(`/servicios`);
     } catch (error) {
       console.error('Error deleting servicio:', error);
+      alert(error.message);
     }
   };
 
@@ -191,6 +146,7 @@ const ServicioForm = () => {
       FechaDesde: date,
     }));
   };
+
   const handleFechaHastaChange = (date) => {
     setServicio((prevServicio) => ({
       ...prevServicio,
@@ -200,7 +156,7 @@ const ServicioForm = () => {
 
   return (
     <div className="text-center">
-      <h1>{headerText}</h1>
+      <h1>{isCreating ? 'Crear Servicio' : 'Modificar Servicio'}</h1>
       <form className="d-flex flex-column col-6 mx-auto" onSubmit={handleSubmit}>
         <h5 className="mb-3 text-start">
           Título:
@@ -208,7 +164,7 @@ const ServicioForm = () => {
             className="form-control"
             type="text"
             name="Nombre"
-            value={servicio?.Nombre || ''}
+            value={servicio.Nombre}
             onChange={handleInputChange}
           />
         </h5>
@@ -218,7 +174,7 @@ const ServicioForm = () => {
             className="form-control"
             rows="5"
             name="Descripcion"
-            value={servicio?.Descripcion || ''}
+            value={servicio.Descripcion}
             onChange={handleInputChange}
           />
         </h5>
@@ -228,7 +184,7 @@ const ServicioForm = () => {
           <select
             className="form-select"
             name="idCategoria"
-            value={servicio?.idCategoria || ''}
+            value={servicio.idCategoria}
             onChange={handleInputChange}
           >
             <option value="">Seleccione una categoría...</option>
@@ -258,7 +214,7 @@ const ServicioForm = () => {
               className="form-control"
               type="number"
               name="Precio"
-              value={servicio?.Precio || ''}
+              value={servicio.Precio}
               onChange={handleInputChange}
             />
           </h5>
@@ -269,23 +225,19 @@ const ServicioForm = () => {
               className="form-control"
               type="text"
               name="Estado"
-              value={servicio?.Estado ? 'Visible' : 'No visible'}
-              onChange={handleInputChange}
+              value={servicio.Estado ? 'Visible' : 'No visible'}
             />
           </h5>
           <div className="col-sm-2 d-flex align-items-center">
             <Switch
-              checked={servicio?.Estado || false}
+              checked={servicio.Estado}
               name="Estado"
               onChange={(checked) =>
-                handleInputChange({
-                  target: { name: 'Estado', checked, type: 'checkbox' },
-                })
+                handleInputChange({ target: { name: 'Estado', checked, type: 'checkbox' } })
               }
             />
           </div>
         </div>
-
 
         <div className="row align-items-center">
           <div className="col-sm-6">
@@ -295,37 +247,35 @@ const ServicioForm = () => {
                 className="form-control"
                 type="number"
                 name="Comision"
-                value={servicio?.Comision || ''}
+                value={servicio.Comision}
                 onChange={handleInputChange}
               />
             </h5>
           </div>
 
           <div className="col-sm-4 d-flex align-items-center">
-
             <h5 className="text-start">
               Descuento:
               <input
                 className="form-control"
                 type="number"
                 name="Descuento"
-                value={servicio?.Descuento || ''}
+                value={servicio.Descuento}
                 onChange={handleInputChange}
               />
             </h5>
           </div>
           <div className="col-sm-2 d-flex align-items-center">
             <Switch
-              checked={servicio?.TieneDescuento || false}
+              checked={servicio.TieneDescuento}
               name="TieneDescuento"
               onChange={(checked) =>
-                handleInputChange({
-                  target: { name: 'TieneDescuento', checked, type: 'checkbox' },
-                })
+                handleInputChange({ target: { name: 'TieneDescuento', checked, type: 'checkbox' } })
               }
             />
           </div>
         </div>
+
         <div className="row align-items-center">
           <h5 className="col-sm-6 mb-3 text-start">
             Duración (min.):
@@ -333,58 +283,42 @@ const ServicioForm = () => {
               className="form-control"
               type="number"
               name="DuracionMinutos"
-              value={servicio?.DuracionMinutos || ''}
+              value={servicio.DuracionMinutos || ''}
               onChange={handleInputChange}
             />
           </h5>
-
 
           <div className="col-sm-4 d-flex align-items-center">
             <h5 className="mb-3 text-start">
               Fecha Desde:
               <DatePicker
-                className='form-control'
-                type="date"
-                name="FechaDesde"
-                selected={servicio?.FechaDesde ? new Date(servicio.FechaDesde) : null}
+                className="form-control"
+                selected={servicio.FechaDesde ? new Date(servicio.FechaDesde) : null}
                 onChange={handleFechaDesdeChange}
                 dateFormat="dd/MM/yyyy"
-                maxDate={servicio?.FechaHasta} // Use optional chaining here as well
-                required
+                maxDate={servicio.FechaHasta}
               />
-
-            </h5>
-
-          </div>
-
-        </div>
-        <div className='row'>
-          <div className="col-sm-6">
-
-
-            <h5 className="mb-3 text-start">
-              Fecha Hasta:
-              <DatePicker
-                className='form-control'
-                type="date"
-                name="FechaHasta"
-                selected={servicio?.FechaHasta ? new Date(servicio.FechaHasta) : null}
-                onChange={handleFechaHastaChange}
-                dateFormat="dd/MM/yyyy"
-                minDate={servicio?.FechaDesde} // Use optional chaining here as well
-                required
-              />
-
             </h5>
           </div>
         </div>
 
-
+        <div className="col-sm-6">
+          <h5 className="mb-3 text-start">
+            Fecha Hasta:
+            <DatePicker
+              className="form-control"
+              selected={servicio.FechaHasta ? new Date(servicio.FechaHasta) : null}
+              onChange={handleFechaHastaChange}
+              dateFormat="dd/MM/yyyy"
+              minDate={servicio.FechaDesde}
+            />
+          </h5>
+        </div>
 
         <div className="row justify-content-center">
           <div className="col-6">
             {!isCreating && (
-              <button className="btn btn-danger" onClick={handleDelete}>
+              <button className="btn btn-danger" type="button" onClick={handleDelete}>
                 BORRAR
               </button>
             )}
@@ -394,7 +328,6 @@ const ServicioForm = () => {
           </div>
         </div>
       </form>
-
     </div>
   );
 };
