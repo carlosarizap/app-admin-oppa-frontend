@@ -222,6 +222,7 @@ const Pagos = () => {
                     <th>Servicio</th>
                     <th>Proveedor</th>
                     <th>Monto</th>
+                    <th>Estado Solicitud</th>
                     <th>Estado de Pago</th>
                   </tr>
                 </thead>
@@ -239,6 +240,9 @@ const Pagos = () => {
                           </td>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(solicitud.Precio)}
+                          </td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {solicitud.Estado}
                           </td>
 
                           <td>
