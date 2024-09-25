@@ -152,7 +152,7 @@ const Pagos = () => {
 
 
     }catch(error){
-      console.log(error)
+      //console.log(error)
       alert("No se pudo actualizar el pago, intentlo nuevamente.", "ok");
 
     }
@@ -218,9 +218,6 @@ const Pagos = () => {
                   />
                   {searchQuery && (
                     <button className="btn btn-clear" onClick={() => setSearchQuery('')}>
-
-
-
                       <span className="fa fa-times"></span>
                     </button>
                   )}
