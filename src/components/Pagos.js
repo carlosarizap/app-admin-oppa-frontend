@@ -31,9 +31,9 @@ const Pagos = () => {
   
         const solicitudesFinalizadasResponse = await fetch(`${URL_BACKEND}/api/solicitud/SolicitudesFinalizados`).then((response) => response.json());
         
-        const serviciosResponse  = await fetch(`${URL_BACKEND}/api/servicios/`).then((response) => response.json());
+        //const serviciosResponse  = await fetch(`${URL_BACKEND}/api/servicios/`).then((response) => response.json());
 
-        solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.map(solicitud => aplicarDescuento(solicitud, serviciosResponse));
+        solicitudFinalizadoFiltrado = solicitudesFinalizadasResponse.map(solicitud => aplicarDescuento(solicitud));
 
         if(selectedEstado === "Todos"){
           // Filtrar las solicitudes finalizadas según el rango de fechas
@@ -83,20 +83,11 @@ const Pagos = () => {
       }
     };
 
-    const aplicarDescuento = (solicitud, serviciosResponse) => {
-      
-      const servicio = serviciosResponse.find(servicio => servicio._id === solicitud.IdServicio);
-
-      if (servicio && servicio.Comision) {
-        const descuento = solicitud.Precio * servicio.Comision;
-        let resultado = solicitud.Precio - descuento;
-        solicitud.Precio = resultado;
-        
-      } else {
-        // Si no se encuentra el servicio o no tiene comisión, el precio con descuento es igual al precio original
-  
-      }
-
+    const aplicarDescuento = (solicitud) => {
+      //const servicio = serviciosResponse.find(servicio => servicio._id === solicitud.IdServicio);
+      const descuento = solicitud.Precio * solicitud.Comision;
+      let resultado = solicitud.Precio - descuento;
+      solicitud.Precio = resultado;
       return solicitud;
       
     };
