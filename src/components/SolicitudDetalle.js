@@ -127,8 +127,12 @@ const SolicitudDetalle = () => {
 
 
         let comprobarSolicitud =  await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${solicitudId}`).then((response) => response.json());
-        if(comprobarSolicitud.IdProveedor === null){
-
+        if(comprobarSolicitud === null){
+            alert("Solicitud Cancelada.");
+        }
+        else if(comprobarSolicitud.IdProveedor != null){
+            alert("Ya tomaron la solicitud.");
+        }else{
             await fetch(`${URL_BACKEND}/api/solicitud/${solicitud._id}`, {
                 method:'PUT',
                 headers: {
@@ -227,10 +231,7 @@ const SolicitudDetalle = () => {
             else{
                 alert("No se pudo modificar el proveedor.");
             }
-
-
-        }else{
-            alert("Ya tomaron la solicitud.");
+            
         }
 
     }
