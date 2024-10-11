@@ -221,6 +221,8 @@ const SolicitudDetalle = () => {
                     body:JSON.stringify(conversacion),
                 });
 
+                alert("Solicitud Actualizada con exito.");
+
                 //refrescar la pagina...
                 //navigate(`/solicitudes`);
                 //window.location.reload();
