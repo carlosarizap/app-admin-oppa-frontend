@@ -124,8 +124,6 @@ const SolicitudDetalle = () => {
 
         const TituloSolicitud = `${solicitud.NombreServicio} ${dia} ${nombreMes} ${solicitud.Hora} hrs.`;
 
-
-
         let comprobarSolicitud =  await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${solicitudId}`).then((response) => response.json());
         if(comprobarSolicitud === null){
             alert("Solicitud Cancelada.");

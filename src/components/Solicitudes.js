@@ -7,6 +7,7 @@ import esLocale from 'date-fns/locale/es';
 import '../index.css';
 
 import { URL_BACKEND } from "../App";
+import { el } from 'date-fns/locale';
 
 const Solicitudes = () => {
   const navigate = useNavigate();
@@ -181,8 +182,15 @@ const Solicitudes = () => {
  }
 
  //REDIRECCION A LA PAGINA PROVEEDORFORMS.
-  const handleRowClickSolicitudDetalle = (SolicitudId) => {
-    navigate(`/solicitudes/${SolicitudId}`);
+  const handleRowClickSolicitudDetalle = async (SolicitudId) => {
+    let comprobarSolicitud = await fetch(`${URL_BACKEND}/api/solicitud/BuacarSolicitudPorId/${SolicitudId}`).then((response) => response.json());
+    if(comprobarSolicitud !== null){
+      navigate(`/solicitudes/${SolicitudId}`);
+    }
+    else{
+      alert("Solicitud no encontrada o eliminada por el cliente.");
+    }
+    
   };
 
   return (
