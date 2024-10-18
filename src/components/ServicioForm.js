@@ -80,7 +80,7 @@ const ServicioForm = () => {
         const formData = new FormData();
         formData.append('image', selectedFile);
 
-        const imageResponse = await fetch(`${URL_BACKEND}/api/upload`, {
+        const imageResponse = await fetch(`${URL_BACKEND}/api/cloudinary/upload`, {
           method: 'POST',
           body: formData,
         });
