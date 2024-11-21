@@ -128,40 +128,51 @@ const Clientes = () => {
     };
 
     const handleDownloadExcelClientes = () => {
+        // Excluir datos no necesarios para el Excel
         const modifiedClientes = clientes.map((cliente) => ({
-            ...cliente,
-            Apoderados: cliente.Apoderados.join(', '), // Convert the array to a comma-separated string of IDs
+            _id: cliente._id,
+            FechaHora: cliente.FechaHora,
+            Rut: cliente.Rut,
+            Nombre: cliente.Nombre,
+            Apellidos: cliente.Apellidos,
+            Genero: cliente.Genero,
+            Correo: cliente.Correo,
+            Numero_Telefonico: cliente.Numero_Telefonico,
+            IdApoderadoPrincipal: cliente.IdApoderadoPrincipal,
+            EsSubscriptor: cliente.EsSubscriptor,
+            Activo: cliente.Activo,
+            Fecha_Nacimiento: cliente.Fecha_Nacimiento,
+            Apoderados: cliente.Apoderados.join(', '),
+            // Excluir campos como imágenes o binarios aquí
         }));
-
+    
+        // Validación para evitar celdas largas
+        const validateCellLength = (data) => {
+            return data.map((row) => {
+                Object.keys(row).forEach((key) => {
+                    if (typeof row[key] === 'string' && row[key].length > 32767) {
+                        row[key] = row[key].substring(0, 32764) + '...'; // Truncar valores largos
+                    }
+                });
+                return row;
+            });
+        };
+    
+        const validatedClientes = validateCellLength(modifiedClientes);
+    
         const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet(modifiedClientes, {
-            header: [
-                '_id',
-                'FechaHora',
-                'Rut',
-                'Password',
-                'Nombre',
-                'Apellidos',
-                'Genero',
-                'Correo',
-                'Numero_Telefonico',
-                'IdApoderadoPrincipal',
-                'EsSubscriptor',
-                'Activo',
-                'Fecha_Nacimiento',
-                'Apoderados',
-            ],
-            skipHeader: false,
-        });
-
+        const worksheet = XLSX.utils.json_to_sheet(validatedClientes);
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
+    
         const excelBuffer = XLSX.write(workbook, {
             type: 'array',
             bookType: 'xlsx',
         });
+    
         const data = new Blob([excelBuffer], {
             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
+    
         const url = URL.createObjectURL(data);
         const link = document.createElement('a');
         link.href = url;
@@ -170,21 +181,47 @@ const Clientes = () => {
         link.click();
         document.body.removeChild(link);
     };
+    
 
 
     const handleDownloadExcelApoderados = () => {
+        // Excluir datos innecesarios como imágenes o binarios y procesar campos largos
         const modifiedApoderados = apoderados.map((apoderado) => ({
-            ...apoderado,
-            Clientes: apoderado.Clientes.join(', '), // Convert the array to a comma-separated string of IDs
+            _id: apoderado._id,
+            FechaHora: apoderado.FechaHora,
+            Rut: apoderado.Rut,
+            Nombre: apoderado.Nombre,
+            Apellidos: apoderado.Apellidos,
+            Genero: apoderado.Genero,
+            Correo: apoderado.Correo,
+            Numero_Telefonico: apoderado.Numero_Telefonico,
+            Fecha_Nacimiento: apoderado.Fecha_Nacimiento,
+            Clientes: apoderado.Clientes.slice(0, 5).join(', ') + (apoderado.Clientes.length > 5 ? '...' : ''), // Limitar a 5 clientes y añadir '...'
+            EsSubscriptor: apoderado.EsSubscriptor,
+            Activo: apoderado.Activo,
+            // Ignorar datos innecesarios como imágenes o binarios
         }));
-
+    
+        // Validar longitud de celdas para evitar errores
+        const validateCellLength = (data) => {
+            return data.map((row) => {
+                Object.keys(row).forEach((key) => {
+                    if (typeof row[key] === 'string' && row[key].length > 32767) {
+                        row[key] = row[key].substring(0, 32764) + '...'; // Truncar valores largos
+                    }
+                });
+                return row;
+            });
+        };
+    
+        const validatedApoderados = validateCellLength(modifiedApoderados);
+    
         const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet(modifiedApoderados, {
+        const worksheet = XLSX.utils.json_to_sheet(validatedApoderados, {
             header: [
                 '_id',
                 'FechaHora',
                 'Rut',
-                'Password',
                 'Nombre',
                 'Apellidos',
                 'Genero',
@@ -197,15 +234,18 @@ const Clientes = () => {
             ],
             skipHeader: false,
         });
-
+    
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Apoderados');
+    
         const excelBuffer = XLSX.write(workbook, {
             type: 'array',
             bookType: 'xlsx',
         });
+    
         const data = new Blob([excelBuffer], {
             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
+    
         const url = URL.createObjectURL(data);
         const link = document.createElement('a');
         link.href = url;
@@ -214,6 +254,7 @@ const Clientes = () => {
         link.click();
         document.body.removeChild(link);
     };
+    
 
 
     const renderCliente = () => {
